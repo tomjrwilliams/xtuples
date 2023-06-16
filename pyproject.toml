@@ -23,9 +23,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/unknown/xtuples#readme"
-Issues = "https://github.com/unknown/xtuples/issues"
-Source = "https://github.com/unknown/xtuples"
+Documentation = "https://github.com/tomjrwilliams/xtuples#readme"
+Issues = "https://github.com/tomjrwilliams/xtuples/issues"
+Source = "https://github.com/tomjrwilliams/xtuples"
 
 [tool.hatch.version]
 path = "src/xtuples/__about__.py"
@@ -46,6 +46,7 @@ cov = [
   "test-cov",
   "cov-report",
 ]
+docs = "python -m pdoc --output-dir ./public ./"
 
 [[tool.hatch.envs.all.matrix]]
 python = ["3.9"]
@@ -56,6 +57,7 @@ dependencies = [
   "black>=23.1.0",
   "mypy>=1.0.0",
   "ruff>=0.0.243",
+  "pdoc"
 ]
 [tool.hatch.envs.lint.scripts]
 typing = "mypy --install-types --non-interactive {args:src/xtuples tests}"

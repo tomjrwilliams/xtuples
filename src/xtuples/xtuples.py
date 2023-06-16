@@ -42,13 +42,13 @@ class JSONEncoder(json.JSONEncoder):
         ):
             yield chunk
 
-    def meta_default(self, obj):
-        return json.JSONEncoder.default(self, obj)
+    # def meta_default(self, obj):
+    #     return json.JSONEncoder.default(self, obj)
 
-    def default(self, obj):
-        if isinstance(obj, fDict):
-            return self.meta_default(obj.data)
-        return cast_json(obj, default=self.meta_default)
+    # def default(self, obj):
+    #     if isinstance(obj, fDict):
+    #         return self.meta_default(obj.data)
+    #     return cast_json(obj, default=self.meta_default)
 
 # -----
 
@@ -63,8 +63,12 @@ class JSONDecoder(json.JSONDecoder):
             #
         )
 
-    def object_hook(self, d):
+    @classmethod
+    def xtuple_object_hook(cls, d):
         return uncast_json(d)
+
+    def object_hook(self, d):
+        return self.xtuple_object_hook(d)
 
 # -----
 
