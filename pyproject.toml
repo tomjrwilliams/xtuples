@@ -23,7 +23,7 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/tomjrwilliams/xtuples#readme"
+Documentation = "https://tomjrwilliams.github.io/xtuples/"
 Issues = "https://github.com/tomjrwilliams/xtuples/issues"
 Source = "https://github.com/tomjrwilliams/xtuples"
 
