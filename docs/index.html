@@ -53,171 +53,6 @@ REGISTRY = {}
 
 # ---------------------------------------------------------------
 
-# TODO: context manager to control
-# if we add the type information when writing to json or not
-
-# TODO: context mananger to control
-# lazy default behaviour (ie. default to lazy or not)
-
-# ---------------------------------------------------------------
-
-class JSONEncoder(json.JSONEncoder):
-
-    def iterencode(self, o, *args, **kwargs):
-        for chunk in super().iterencode(
-            cast_json(o), *args, **kwargs
-        ):
-            yield chunk
-
-    # def meta_default(self, obj):
-    #     return json.JSONEncoder.default(self, obj)
-
-    # def default(self, obj):
-    #     if isinstance(obj, fDict):
-    #         return self.meta_default(obj.data)
-    #     return cast_json(obj, default=self.meta_default)
-
-# -----
-
-class JSONDecoder(json.JSONDecoder):
-
-    def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(
-            self,
-            object_hook=self.object_hook,
-            *args,
-            **kwargs
-            #
-        )
-
-    @classmethod
-    def xtuple_object_hook(cls, d):
-        return uncast_json(d)
-
-    def object_hook(self, d):
-        return self.xtuple_object_hook(d)
-
-# -----
-
-def cast_json(obj, default = lambda obj: obj):
-    if nTuple.is_instance(obj):
-        return nTuple.cast_json(obj)
-    try:
-        return obj.cast_json()
-    except:
-        return default(obj)
-
-def uncast_json(obj):
-    if not isinstance(obj, dict):
-        return obj
-    __t__ = obj.get(&#34;__t__&#34;, None)
-    if __t__ is None:
-        return obj
-    cls = iTuple if __t__ == &#34;iTuple&#34; else REGISTRY[__t__]
-    if hasattr(cls, &#34;uncast_json&#34;):
-        return cls.uncast_json(obj)
-    return cls(
-        *(v for k, v in obj.items() if k != &#34;__t__&#34;)
-    )
-
-# -----
-
-# TODO: fString so can do .pipe ?
-def to_json(v, **kwargs):
-    &#34;&#34;&#34;
-    &gt;&gt;&gt; print(iTuple([Example(1, &#34;a&#34;)]).pipe(to_json, indent=2))
-    {
-      &#34;__t__&#34;: &#34;iTuple&#34;,
-      &#34;data&#34;: [
-        {
-          &#34;x&#34;: 1,
-          &#34;s&#34;: &#34;a&#34;,
-          &#34;it&#34;: {
-            &#34;__t__&#34;: &#34;iTuple&#34;,
-            &#34;data&#34;: []
-          },
-          &#34;__t__&#34;: &#34;Example&#34;
-        }
-      ]
-    }
-    &gt;&gt;&gt; print(iTuple([
-    ...     iTuple([Example(1, &#34;a&#34;)])
-    ... ]).pipe(to_json, indent=2))
-    {
-      &#34;__t__&#34;: &#34;iTuple&#34;,
-      &#34;data&#34;: [
-        {
-          &#34;__t__&#34;: &#34;iTuple&#34;,
-          &#34;data&#34;: [
-            {
-              &#34;x&#34;: 1,
-              &#34;s&#34;: &#34;a&#34;,
-              &#34;it&#34;: {
-                &#34;__t__&#34;: &#34;iTuple&#34;,
-                &#34;data&#34;: []
-              },
-              &#34;__t__&#34;: &#34;Example&#34;
-            }
-          ]
-        }
-      ]
-    }
-    &gt;&gt;&gt; print(Example(2, &#34;b&#34;, iTuple([
-    ...     iTuple([Example(1, &#34;a&#34;)])
-    ... ])).pipe(to_json, indent=2))
-    {
-      &#34;x&#34;: 2,
-      &#34;s&#34;: &#34;b&#34;,
-      &#34;it&#34;: {
-        &#34;__t__&#34;: &#34;iTuple&#34;,
-        &#34;data&#34;: [
-          {
-            &#34;__t__&#34;: &#34;iTuple&#34;,
-            &#34;data&#34;: [
-              {
-                &#34;x&#34;: 1,
-                &#34;s&#34;: &#34;a&#34;,
-                &#34;it&#34;: {
-                  &#34;__t__&#34;: &#34;iTuple&#34;,
-                  &#34;data&#34;: []
-                },
-                &#34;__t__&#34;: &#34;Example&#34;
-              }
-            ]
-          }
-        ]
-      },
-      &#34;__t__&#34;: &#34;Example&#34;
-    }
-    &#34;&#34;&#34;
-    return json.dumps(v, cls=JSONEncoder, **kwargs)
-
-def from_json(v: str, **kwargs):
-    &#34;&#34;&#34;
-    &gt;&gt;&gt; ex = iTuple([Example(1, &#34;a&#34;)])
-    &gt;&gt;&gt; from_json(ex.pipe(to_json))
-    iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple()))
-    &gt;&gt;&gt; from_json(
-    ...     iTuple([iTuple([Example(1, &#34;a&#34;)])]).pipe(to_json)
-    ... )
-    iTuple(iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple())))
-    &gt;&gt;&gt; from_json(
-    ...     Example(2, &#34;b&#34;, iTuple([
-    ...         iTuple([Example(1, &#34;a&#34;)])
-    ...     ])).pipe(to_json)
-    ... )
-    Example(x=2, s=&#39;b&#39;, it=iTuple(iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple()))))
-    &#34;&#34;&#34;
-    return json.loads(v, cls=JSONDecoder, **kwargs)
-
-def load_json(f):
-    return json.load(f, cls=JSONDecoder)
-
-def dump_json(f, v):
-    return json.dump(f, v, cls=JSONEncoder)
-
-# ---------------------------------------------------------------
-
 # TODO: some kind of validation placeholder?
 # called in init, eg. quarter in [1 .. 4]
 
@@ -936,289 +771,77 @@ class Example(typing.NamedTuple):
 
 # ---------------------------------------------------------------
 
-# import misc.perfmon
+# TODO: context manager to control
+# if we add the type information when writing to json or not
 
-# def int_memory_gen(cum=False):
-#     i = 0
-#     while True:
-#         yield i
-#     return
-
-# def dict_memory_gen(cum=False):
-#     i = 0
-#     if cum:
-#         while True:
-#             yield {ii: ii for ii in range(i)}
-#             i += 1
-#     else:
-#         while True:
-#             yield {i: i}
-#             i += 1
-#     return
-
-# def list_memory_gen(cum=False):
-#     i = 0
-#     if cum:
-#         while True:
-#             yield list(range(i))
-#             i += 1
-#     else:
-#         while True:
-#             yield [i]
-#             i += 1
-#     return
-
-# def iTuple_memory_gen(cum=False):
-#     i = 0
-#     if cum:
-#         while True:
-#             yield iTuple(range(i))
-#             i += 1
-#     else:
-#         while True:
-#             yield iTuple([i])
-#             i += 1
-#     return
-
-# print(&#34;int&#34;, misc.perfmon.profile_memory(
-#     int_memory_gen
-# ))
-
-# print(&#34;list&#34;, misc.perfmon.profile_memory(
-#     list_memory_gen
-# ))
-
-# print(&#34;iTuple&#34;, misc.perfmon.profile_memory(
-#     iTuple_memory_gen
-# ))
-
-# print(&#34;list cum&#34;, misc.perfmon.profile_memory(
-#     list_memory_gen, cum=True,
-# ))
-
-# print(&#34;iTuple cum&#34;, misc.perfmon.profile_memory(
-#     iTuple_memory_gen, cum=True,
-# ))
+# TODO: context mananger to control
+# lazy default behaviour (ie. default to lazy or not)
 
 # ---------------------------------------------------------------
 
-# s = S(1)
-# s_parent = S_Parent(s)
+class JSONEncoder(json.JSONEncoder):
 
-# print(s.cls.annotations(s))
+    def iterencode(self, o, *args, **kwargs):
+        for chunk in super().iterencode(
+            cast_json(o), *args, **kwargs
+        ):
+            yield chunk
 
-# print(s.cls)
+    # def meta_default(self, obj):
+    #     return json.JSONEncoder.default(self, obj)
 
-# print(s_parent.cast_json())
+    # def default(self, obj):
+    #     if isinstance(obj, fDict):
+    #         return self.meta_default(obj.data)
+    #     return cast_json(obj, default=self.meta_default)
 
-# print(iTuple([s_parent]).cast_json())
+# -----
 
-# # ---------------------------------------------------------------
+class JSONDecoder(json.JSONDecoder):
 
-# l = iTuple([s])
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(
+            self,
+            object_hook=self.object_hook,
+            *args,
+            **kwargs
+            #
+        )
 
-# print(l.extend([2]))
+    @classmethod
+    def xtuple_object_hook(cls, d):
+        return uncast_json(d)
 
-# print(l.append(1))
+    def object_hook(self, d):
+        return self.xtuple_object_hook(d)
 
-# print(l.map(print))
+# -----
 
-# # ---------------------------------------------------------------
-
-# print(s.cls)
-
-# print(&#34;Should be true:&#34;, nTuple.is_instance(s))
-# print(&#34;Should be false:&#34;, nTuple.is_subclass(s))
-
-# print(&#34;Should be true:&#34;, nTuple.is_subclass(S))
-# print(&#34;Should be false:&#34;, nTuple.is_instance(S))
-
-# ---------------------------------------------------------------
-
-# NOTE: i coudl in theory generate sqlalchemy tables
-
-# based on the struct definition
-
-# joins presumably are then manual?
-
-# with standardised eg. persist methods based on unique keys, etc.
-
-# but any point?
-
-# handle dates as tiny structs?
-# surely prohibitively expensive
-
-# tuples perhaps not? but still a bit, and all the datetime methods suddenly wouldn&#39;t work.
-
-# ---------------------------------------------------------------</code></pre>
-</details>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="xtuples.cast_json"><code class="name flex">
-<span>def <span class="ident">cast_json</span></span>(<span>obj, default=&lt;function &lt;lambda&gt;&gt;)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def cast_json(obj, default = lambda obj: obj):
+def cast_json(obj, default = lambda obj: obj):
     if nTuple.is_instance(obj):
         return nTuple.cast_json(obj)
     try:
         return obj.cast_json()
     except:
-        return default(obj)</code></pre>
-</details>
-</dd>
-<dt id="xtuples.dump_json"><code class="name flex">
-<span>def <span class="ident">dump_json</span></span>(<span>f, v)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dump_json(f, v):
-    return json.dump(f, v, cls=JSONEncoder)</code></pre>
-</details>
-</dd>
-<dt id="xtuples.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>v: str, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; ex = iTuple([Example(1, &quot;a&quot;)])
-&gt;&gt;&gt; from_json(ex.pipe(to_json))
-iTuple(Example(x=1, s='a', it=iTuple()))
-&gt;&gt;&gt; from_json(
-...     iTuple([iTuple([Example(1, &quot;a&quot;)])]).pipe(to_json)
-... )
-iTuple(iTuple(Example(x=1, s='a', it=iTuple())))
-&gt;&gt;&gt; from_json(
-...     Example(2, &quot;b&quot;, iTuple([
-...         iTuple([Example(1, &quot;a&quot;)])
-...     ])).pipe(to_json)
-... )
-Example(x=2, s='b', it=iTuple(iTuple(Example(x=1, s='a', it=iTuple()))))
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def from_json(v: str, **kwargs):
-    &#34;&#34;&#34;
-    &gt;&gt;&gt; ex = iTuple([Example(1, &#34;a&#34;)])
-    &gt;&gt;&gt; from_json(ex.pipe(to_json))
-    iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple()))
-    &gt;&gt;&gt; from_json(
-    ...     iTuple([iTuple([Example(1, &#34;a&#34;)])]).pipe(to_json)
-    ... )
-    iTuple(iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple())))
-    &gt;&gt;&gt; from_json(
-    ...     Example(2, &#34;b&#34;, iTuple([
-    ...         iTuple([Example(1, &#34;a&#34;)])
-    ...     ])).pipe(to_json)
-    ... )
-    Example(x=2, s=&#39;b&#39;, it=iTuple(iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple()))))
-    &#34;&#34;&#34;
-    return json.loads(v, cls=JSONDecoder, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="xtuples.load_json"><code class="name flex">
-<span>def <span class="ident">load_json</span></span>(<span>f)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def load_json(f):
-    return json.load(f, cls=JSONDecoder)</code></pre>
-</details>
-</dd>
-<dt id="xtuples.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>v, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; print(iTuple([Example(1, &quot;a&quot;)]).pipe(to_json, indent=2))
-{
-  &quot;__t__&quot;: &quot;iTuple&quot;,
-  &quot;data&quot;: [
-    {
-      &quot;x&quot;: 1,
-      &quot;s&quot;: &quot;a&quot;,
-      &quot;it&quot;: {
-        &quot;__t__&quot;: &quot;iTuple&quot;,
-        &quot;data&quot;: []
-      },
-      &quot;__t__&quot;: &quot;Example&quot;
-    }
-  ]
-}
-&gt;&gt;&gt; print(iTuple([
-...     iTuple([Example(1, &quot;a&quot;)])
-... ]).pipe(to_json, indent=2))
-{
-  &quot;__t__&quot;: &quot;iTuple&quot;,
-  &quot;data&quot;: [
-    {
-      &quot;__t__&quot;: &quot;iTuple&quot;,
-      &quot;data&quot;: [
-        {
-          &quot;x&quot;: 1,
-          &quot;s&quot;: &quot;a&quot;,
-          &quot;it&quot;: {
-            &quot;__t__&quot;: &quot;iTuple&quot;,
-            &quot;data&quot;: []
-          },
-          &quot;__t__&quot;: &quot;Example&quot;
-        }
-      ]
-    }
-  ]
-}
-&gt;&gt;&gt; print(Example(2, &quot;b&quot;, iTuple([
-...     iTuple([Example(1, &quot;a&quot;)])
-... ])).pipe(to_json, indent=2))
-{
-  &quot;x&quot;: 2,
-  &quot;s&quot;: &quot;b&quot;,
-  &quot;it&quot;: {
-    &quot;__t__&quot;: &quot;iTuple&quot;,
-    &quot;data&quot;: [
-      {
-        &quot;__t__&quot;: &quot;iTuple&quot;,
-        &quot;data&quot;: [
-          {
-            &quot;x&quot;: 1,
-            &quot;s&quot;: &quot;a&quot;,
-            &quot;it&quot;: {
-              &quot;__t__&quot;: &quot;iTuple&quot;,
-              &quot;data&quot;: []
-            },
-            &quot;__t__&quot;: &quot;Example&quot;
-          }
-        ]
-      }
-    ]
-  },
-  &quot;__t__&quot;: &quot;Example&quot;
-}
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_json(v, **kwargs):
+        return default(obj)
+
+def uncast_json(obj):
+    if not isinstance(obj, dict):
+        return obj
+    __t__ = obj.get(&#34;__t__&#34;, None)
+    if __t__ is None:
+        return obj
+    cls = iTuple if __t__ == &#34;iTuple&#34; else REGISTRY[__t__]
+    if hasattr(cls, &#34;uncast_json&#34;):
+        return cls.uncast_json(obj)
+    return cls(
+        *(v for k, v in obj.items() if k != &#34;__t__&#34;)
+    )
+
+# -----
+
+# TODO: fString so can do .pipe ?
+def to_json(v, **kwargs):
     &#34;&#34;&#34;
     &gt;&gt;&gt; print(iTuple([Example(1, &#34;a&#34;)]).pipe(to_json, indent=2))
     {
@@ -1285,150 +908,54 @@ Example(x=2, s='b', it=iTuple(iTuple(Example(x=1, s='a', it=iTuple()))))
       &#34;__t__&#34;: &#34;Example&#34;
     }
     &#34;&#34;&#34;
-    return json.dumps(v, cls=JSONEncoder, **kwargs)</code></pre>
+    return json.dumps(v, cls=JSONEncoder, **kwargs)
+
+def from_json(v: str, **kwargs):
+    &#34;&#34;&#34;
+    &gt;&gt;&gt; ex = iTuple([Example(1, &#34;a&#34;)])
+    &gt;&gt;&gt; from_json(ex.pipe(to_json))
+    iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple()))
+    &gt;&gt;&gt; from_json(
+    ...     iTuple([iTuple([Example(1, &#34;a&#34;)])]).pipe(to_json)
+    ... )
+    iTuple(iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple())))
+    &gt;&gt;&gt; from_json(
+    ...     Example(2, &#34;b&#34;, iTuple([
+    ...         iTuple([Example(1, &#34;a&#34;)])
+    ...     ])).pipe(to_json)
+    ... )
+    Example(x=2, s=&#39;b&#39;, it=iTuple(iTuple(Example(x=1, s=&#39;a&#39;, it=iTuple()))))
+    &#34;&#34;&#34;
+    return json.loads(v, cls=JSONDecoder, **kwargs)
+
+def load_json(f):
+    return json.load(f, cls=JSONDecoder)
+
+def dump_json(f, v):
+    return json.dump(f, v, cls=JSONEncoder)
+
+# ---------------------------------------------------------------
+
+__all__ = [
+    &#34;iTuple&#34;,
+    &#34;nTuple&#34;,
+    &#34;fDict&#34;,
+    &#34;JSONDecoder&#34;,
+    &#34;JSONEncoder&#34;,
+]
+
+# ---------------------------------------------------------------</code></pre>
 </details>
-</dd>
-<dt id="xtuples.uncast_json"><code class="name flex">
-<span>def <span class="ident">uncast_json</span></span>(<span>obj)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def uncast_json(obj):
-    if not isinstance(obj, dict):
-        return obj
-    __t__ = obj.get(&#34;__t__&#34;, None)
-    if __t__ is None:
-        return obj
-    cls = iTuple if __t__ == &#34;iTuple&#34; else REGISTRY[__t__]
-    if hasattr(cls, &#34;uncast_json&#34;):
-        return cls.uncast_json(obj)
-    return cls(
-        *(v for k, v in obj.items() if k != &#34;__t__&#34;)
-    )</code></pre>
-</details>
-</dd>
-</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="xtuples.Example"><code class="flex name class">
-<span>class <span class="ident">Example</span></span>
-<span>(</span><span>x: int, s: str, it: <a title="xtuples.iTuple" href="#xtuples.iTuple">iTuple</a> = iTuple())</span>
-</code></dt>
-<dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; ex = Example(1, &quot;a&quot;)
-&gt;&gt;&gt; ex
-Example(x=1, s='a', it=iTuple())
-&gt;&gt;&gt; ex.cls
-&lt;class 'xtuples.xtuples.nTuple'&gt;
-&gt;&gt;&gt; ex.pipe(lambda nt: nt.x)
-1
-&gt;&gt;&gt; f = ex.partial(lambda nt, v: nt.x * v)
-&gt;&gt;&gt; f(2)
-2
-&gt;&gt;&gt; f(3)
-3
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@nTuple.decorate
-class Example(typing.NamedTuple):
-    &#34;&#34;&#34;
-    &gt;&gt;&gt; ex = Example(1, &#34;a&#34;)
-    &gt;&gt;&gt; ex
-    Example(x=1, s=&#39;a&#39;, it=iTuple())
-    &gt;&gt;&gt; ex.cls
-    &lt;class &#39;xtuples.xtuples.nTuple&#39;&gt;
-    &gt;&gt;&gt; ex.pipe(lambda nt: nt.x)
-    1
-    &gt;&gt;&gt; f = ex.partial(lambda nt, v: nt.x * v)
-    &gt;&gt;&gt; f(2)
-    2
-    &gt;&gt;&gt; f(3)
-    3
-    &#34;&#34;&#34;
-    # NOTE: cls, pipe, partial are mandatory boilerplate
-
-    x: int
-    s: str
-    it: iTuple = iTuple([])
-
-    @property
-    def cls(self):
-        ...
-
-    def pipe(self, f, *args, **kwargs):
-        ...
-
-    def partial(self, f, *args, **kwargs):
-        ...</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.tuple</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="xtuples.Example.cls"><code class="name">var <span class="ident">cls</span></code></dt>
-<dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
-</dd>
-</dl>
-<h3>Instance variables</h3>
-<dl>
-<dt id="xtuples.Example.it"><code class="name">var <span class="ident">it</span> : <a title="xtuples.iTuple" href="#xtuples.iTuple">iTuple</a></code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 2</p></div>
-</dd>
-<dt id="xtuples.Example.s"><code class="name">var <span class="ident">s</span> : str</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 1</p></div>
-</dd>
-<dt id="xtuples.Example.x"><code class="name">var <span class="ident">x</span> : int</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 0</p></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="xtuples.Example.partial"><code class="name flex">
-<span>def <span class="ident">partial</span></span>(<span>obj, f, *args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def partial(obj, f, *args, **kwargs):
-    return functools.partial(f, obj, *args, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="xtuples.Example.pipe"><code class="name flex">
-<span>def <span class="ident">pipe</span></span>(<span>obj, f, *args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def pipe(obj, f, *args, **kwargs):
-    return f(obj, *args, **kwargs)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
 <dt id="xtuples.JSONDecoder"><code class="flex name class">
 <span>class <span class="ident">JSONDecoder</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -3809,29 +3336,8 @@ def uncast_json(meta, obj):
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
-<li><code><a title="xtuples.cast_json" href="#xtuples.cast_json">cast_json</a></code></li>
-<li><code><a title="xtuples.dump_json" href="#xtuples.dump_json">dump_json</a></code></li>
-<li><code><a title="xtuples.from_json" href="#xtuples.from_json">from_json</a></code></li>
-<li><code><a title="xtuples.load_json" href="#xtuples.load_json">load_json</a></code></li>
-<li><code><a title="xtuples.to_json" href="#xtuples.to_json">to_json</a></code></li>
-<li><code><a title="xtuples.uncast_json" href="#xtuples.uncast_json">uncast_json</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
-<li>
-<h4><code><a title="xtuples.Example" href="#xtuples.Example">Example</a></code></h4>
-<ul class="two-column">
-<li><code><a title="xtuples.Example.cls" href="#xtuples.Example.cls">cls</a></code></li>
-<li><code><a title="xtuples.Example.it" href="#xtuples.Example.it">it</a></code></li>
-<li><code><a title="xtuples.Example.partial" href="#xtuples.Example.partial">partial</a></code></li>
-<li><code><a title="xtuples.Example.pipe" href="#xtuples.Example.pipe">pipe</a></code></li>
-<li><code><a title="xtuples.Example.s" href="#xtuples.Example.s">s</a></code></li>
-<li><code><a title="xtuples.Example.x" href="#xtuples.Example.x">x</a></code></li>
-</ul>
-</li>
 <li>
 <h4><code><a title="xtuples.JSONDecoder" href="#xtuples.JSONDecoder">JSONDecoder</a></code></h4>
 <ul class="">

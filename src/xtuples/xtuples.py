@@ -26,171 +26,6 @@ REGISTRY = {}
 
 # ---------------------------------------------------------------
 
-# TODO: context manager to control
-# if we add the type information when writing to json or not
-
-# TODO: context mananger to control
-# lazy default behaviour (ie. default to lazy or not)
-
-# ---------------------------------------------------------------
-
-class JSONEncoder(json.JSONEncoder):
-
-    def iterencode(self, o, *args, **kwargs):
-        for chunk in super().iterencode(
-            cast_json(o), *args, **kwargs
-        ):
-            yield chunk
-
-    # def meta_default(self, obj):
-    #     return json.JSONEncoder.default(self, obj)
-
-    # def default(self, obj):
-    #     if isinstance(obj, fDict):
-    #         return self.meta_default(obj.data)
-    #     return cast_json(obj, default=self.meta_default)
-
-# -----
-
-class JSONDecoder(json.JSONDecoder):
-
-    def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(
-            self,
-            object_hook=self.object_hook,
-            *args,
-            **kwargs
-            #
-        )
-
-    @classmethod
-    def xtuple_object_hook(cls, d):
-        return uncast_json(d)
-
-    def object_hook(self, d):
-        return self.xtuple_object_hook(d)
-
-# -----
-
-def cast_json(obj, default = lambda obj: obj):
-    if nTuple.is_instance(obj):
-        return nTuple.cast_json(obj)
-    try:
-        return obj.cast_json()
-    except:
-        return default(obj)
-
-def uncast_json(obj):
-    if not isinstance(obj, dict):
-        return obj
-    __t__ = obj.get("__t__", None)
-    if __t__ is None:
-        return obj
-    cls = iTuple if __t__ == "iTuple" else REGISTRY[__t__]
-    if hasattr(cls, "uncast_json"):
-        return cls.uncast_json(obj)
-    return cls(
-        *(v for k, v in obj.items() if k != "__t__")
-    )
-
-# -----
-
-# TODO: fString so can do .pipe ?
-def to_json(v, **kwargs):
-    """
-    >>> print(iTuple([Example(1, "a")]).pipe(to_json, indent=2))
-    {
-      "__t__": "iTuple",
-      "data": [
-        {
-          "x": 1,
-          "s": "a",
-          "it": {
-            "__t__": "iTuple",
-            "data": []
-          },
-          "__t__": "Example"
-        }
-      ]
-    }
-    >>> print(iTuple([
-    ...     iTuple([Example(1, "a")])
-    ... ]).pipe(to_json, indent=2))
-    {
-      "__t__": "iTuple",
-      "data": [
-        {
-          "__t__": "iTuple",
-          "data": [
-            {
-              "x": 1,
-              "s": "a",
-              "it": {
-                "__t__": "iTuple",
-                "data": []
-              },
-              "__t__": "Example"
-            }
-          ]
-        }
-      ]
-    }
-    >>> print(Example(2, "b", iTuple([
-    ...     iTuple([Example(1, "a")])
-    ... ])).pipe(to_json, indent=2))
-    {
-      "x": 2,
-      "s": "b",
-      "it": {
-        "__t__": "iTuple",
-        "data": [
-          {
-            "__t__": "iTuple",
-            "data": [
-              {
-                "x": 1,
-                "s": "a",
-                "it": {
-                  "__t__": "iTuple",
-                  "data": []
-                },
-                "__t__": "Example"
-              }
-            ]
-          }
-        ]
-      },
-      "__t__": "Example"
-    }
-    """
-    return json.dumps(v, cls=JSONEncoder, **kwargs)
-
-def from_json(v: str, **kwargs):
-    """
-    >>> ex = iTuple([Example(1, "a")])
-    >>> from_json(ex.pipe(to_json))
-    iTuple(Example(x=1, s='a', it=iTuple()))
-    >>> from_json(
-    ...     iTuple([iTuple([Example(1, "a")])]).pipe(to_json)
-    ... )
-    iTuple(iTuple(Example(x=1, s='a', it=iTuple())))
-    >>> from_json(
-    ...     Example(2, "b", iTuple([
-    ...         iTuple([Example(1, "a")])
-    ...     ])).pipe(to_json)
-    ... )
-    Example(x=2, s='b', it=iTuple(iTuple(Example(x=1, s='a', it=iTuple()))))
-    """
-    return json.loads(v, cls=JSONDecoder, **kwargs)
-
-def load_json(f):
-    return json.load(f, cls=JSONDecoder)
-
-def dump_json(f, v):
-    return json.dump(f, v, cls=JSONEncoder)
-
-# ---------------------------------------------------------------
-
 # TODO: some kind of validation placeholder?
 # called in init, eg. quarter in [1 .. 4]
 
@@ -909,118 +744,177 @@ class Example(typing.NamedTuple):
 
 # ---------------------------------------------------------------
 
-# import misc.perfmon
+# TODO: context manager to control
+# if we add the type information when writing to json or not
 
-# def int_memory_gen(cum=False):
-#     i = 0
-#     while True:
-#         yield i
-#     return
-
-# def dict_memory_gen(cum=False):
-#     i = 0
-#     if cum:
-#         while True:
-#             yield {ii: ii for ii in range(i)}
-#             i += 1
-#     else:
-#         while True:
-#             yield {i: i}
-#             i += 1
-#     return
-
-# def list_memory_gen(cum=False):
-#     i = 0
-#     if cum:
-#         while True:
-#             yield list(range(i))
-#             i += 1
-#     else:
-#         while True:
-#             yield [i]
-#             i += 1
-#     return
-
-# def iTuple_memory_gen(cum=False):
-#     i = 0
-#     if cum:
-#         while True:
-#             yield iTuple(range(i))
-#             i += 1
-#     else:
-#         while True:
-#             yield iTuple([i])
-#             i += 1
-#     return
-
-# print("int", misc.perfmon.profile_memory(
-#     int_memory_gen
-# ))
-
-# print("list", misc.perfmon.profile_memory(
-#     list_memory_gen
-# ))
-
-# print("iTuple", misc.perfmon.profile_memory(
-#     iTuple_memory_gen
-# ))
-
-# print("list cum", misc.perfmon.profile_memory(
-#     list_memory_gen, cum=True,
-# ))
-
-# print("iTuple cum", misc.perfmon.profile_memory(
-#     iTuple_memory_gen, cum=True,
-# ))
+# TODO: context mananger to control
+# lazy default behaviour (ie. default to lazy or not)
 
 # ---------------------------------------------------------------
 
-# s = S(1)
-# s_parent = S_Parent(s)
+class JSONEncoder(json.JSONEncoder):
 
-# print(s.cls.annotations(s))
+    def iterencode(self, o, *args, **kwargs):
+        for chunk in super().iterencode(
+            cast_json(o), *args, **kwargs
+        ):
+            yield chunk
 
-# print(s.cls)
+    # def meta_default(self, obj):
+    #     return json.JSONEncoder.default(self, obj)
 
-# print(s_parent.cast_json())
+    # def default(self, obj):
+    #     if isinstance(obj, fDict):
+    #         return self.meta_default(obj.data)
+    #     return cast_json(obj, default=self.meta_default)
 
-# print(iTuple([s_parent]).cast_json())
+# -----
 
-# # ---------------------------------------------------------------
+class JSONDecoder(json.JSONDecoder):
 
-# l = iTuple([s])
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(
+            self,
+            object_hook=self.object_hook,
+            *args,
+            **kwargs
+            #
+        )
 
-# print(l.extend([2]))
+    @classmethod
+    def xtuple_object_hook(cls, d):
+        return uncast_json(d)
 
-# print(l.append(1))
+    def object_hook(self, d):
+        return self.xtuple_object_hook(d)
 
-# print(l.map(print))
+# -----
 
-# # ---------------------------------------------------------------
+def cast_json(obj, default = lambda obj: obj):
+    if nTuple.is_instance(obj):
+        return nTuple.cast_json(obj)
+    try:
+        return obj.cast_json()
+    except:
+        return default(obj)
 
-# print(s.cls)
+def uncast_json(obj):
+    if not isinstance(obj, dict):
+        return obj
+    __t__ = obj.get("__t__", None)
+    if __t__ is None:
+        return obj
+    cls = iTuple if __t__ == "iTuple" else REGISTRY[__t__]
+    if hasattr(cls, "uncast_json"):
+        return cls.uncast_json(obj)
+    return cls(
+        *(v for k, v in obj.items() if k != "__t__")
+    )
 
-# print("Should be true:", nTuple.is_instance(s))
-# print("Should be false:", nTuple.is_subclass(s))
+# -----
 
-# print("Should be true:", nTuple.is_subclass(S))
-# print("Should be false:", nTuple.is_instance(S))
+# TODO: fString so can do .pipe ?
+def to_json(v, **kwargs):
+    """
+    >>> print(iTuple([Example(1, "a")]).pipe(to_json, indent=2))
+    {
+      "__t__": "iTuple",
+      "data": [
+        {
+          "x": 1,
+          "s": "a",
+          "it": {
+            "__t__": "iTuple",
+            "data": []
+          },
+          "__t__": "Example"
+        }
+      ]
+    }
+    >>> print(iTuple([
+    ...     iTuple([Example(1, "a")])
+    ... ]).pipe(to_json, indent=2))
+    {
+      "__t__": "iTuple",
+      "data": [
+        {
+          "__t__": "iTuple",
+          "data": [
+            {
+              "x": 1,
+              "s": "a",
+              "it": {
+                "__t__": "iTuple",
+                "data": []
+              },
+              "__t__": "Example"
+            }
+          ]
+        }
+      ]
+    }
+    >>> print(Example(2, "b", iTuple([
+    ...     iTuple([Example(1, "a")])
+    ... ])).pipe(to_json, indent=2))
+    {
+      "x": 2,
+      "s": "b",
+      "it": {
+        "__t__": "iTuple",
+        "data": [
+          {
+            "__t__": "iTuple",
+            "data": [
+              {
+                "x": 1,
+                "s": "a",
+                "it": {
+                  "__t__": "iTuple",
+                  "data": []
+                },
+                "__t__": "Example"
+              }
+            ]
+          }
+        ]
+      },
+      "__t__": "Example"
+    }
+    """
+    return json.dumps(v, cls=JSONEncoder, **kwargs)
+
+def from_json(v: str, **kwargs):
+    """
+    >>> ex = iTuple([Example(1, "a")])
+    >>> from_json(ex.pipe(to_json))
+    iTuple(Example(x=1, s='a', it=iTuple()))
+    >>> from_json(
+    ...     iTuple([iTuple([Example(1, "a")])]).pipe(to_json)
+    ... )
+    iTuple(iTuple(Example(x=1, s='a', it=iTuple())))
+    >>> from_json(
+    ...     Example(2, "b", iTuple([
+    ...         iTuple([Example(1, "a")])
+    ...     ])).pipe(to_json)
+    ... )
+    Example(x=2, s='b', it=iTuple(iTuple(Example(x=1, s='a', it=iTuple()))))
+    """
+    return json.loads(v, cls=JSONDecoder, **kwargs)
+
+def load_json(f):
+    return json.load(f, cls=JSONDecoder)
+
+def dump_json(f, v):
+    return json.dump(f, v, cls=JSONEncoder)
 
 # ---------------------------------------------------------------
 
-# NOTE: i coudl in theory generate sqlalchemy tables
-
-# based on the struct definition
-
-# joins presumably are then manual?
-
-# with standardised eg. persist methods based on unique keys, etc.
-
-# but any point?
-
-# handle dates as tiny structs?
-# surely prohibitively expensive
-
-# tuples perhaps not? but still a bit, and all the datetime methods suddenly wouldn't work.
+__all__ = [
+    "iTuple",
+    "nTuple",
+    "fDict",
+    "JSONDecoder",
+    "JSONEncoder",
+]
 
 # ---------------------------------------------------------------
