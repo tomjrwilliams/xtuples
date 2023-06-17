@@ -5,6 +5,8 @@ from .xtuples import (
     iTuple,
     nTuple,
     fDict,
+)
+from .json import (
     JSONDecoder,
     JSONEncoder,
 )
