@@ -46,7 +46,7 @@ assert Example(1, "a").pipe(lambda obj: obj.int) == 1
 
 As briefly demonstrated above, by equipping our data structures with .pipe() and .partial(), we're able to use method chaining to mimic the functional pipelines seen in languages like f#.
 
-This then tends to lead us away from inheritance, and more towards composition: to a code base comprised entirely of either free functions, or instances of either of the above.
+This then tends to lead us away from inheritance, and more towards composition: to a code base comprised entirely of either free functions, or descendants of either of the above.
 
 ### Performance
 
@@ -60,7 +60,7 @@ Similarly, iTuple - as a subclass of tuple - is more memory efficient, and provi
 
 < Insert demo >
 
-The one caveat to this is that some methods which are lazy by default (returning generators), are treated eagerly - however this is something I am actively working on.
+The one caveat to this is that some methods which are canonically lazy, returning generators, are treated eagerly - however this is something I am actively working on.
 
 ### xtuples.json
 
