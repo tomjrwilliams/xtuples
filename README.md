@@ -38,19 +38,19 @@ assert (
 
 ```python
 @nTuple.decorate
-class Example:
+class Example(collections.NamedTuple):
     x: int
 
 assert Example(1, "a").pipe(lambda obj: obj.int) == 1
 ```
 
-By equipping our data structures with .pipe() and .partial(), we're able to use method chaining to mimic the functional pipelines seen in languages like f#.
+As briefly demonstrated above, by equipping our data structures with .pipe() and .partial(), we're able to use method chaining to mimic the functional pipelines seen in languages like f#.
 
-As such, more or less all of my data structures these days are either an iTuple (or sub-class thereof), or a NamedTuple decorated with nTuple.decorate.
+This then tends to lead us away from inheritance, and more towards composition: to a code base comprised entirely of either free functions, or instances of either of the above.
 
 ### Performance
 
-Performance should generally be at worst, not worse than a non-optimised canonical equivalent implementation (and can often be significantly better).
+Performance should generally be at worst, not worse than a non-optimised canonical equivalent (and can often be significantly better).
 
 For instance, NamedTuples provide faster access, and are more memory efficient, than standard classes (or even raw dicts).
 
