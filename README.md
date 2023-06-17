@@ -22,14 +22,49 @@ xtuples is designed to make functional programming easier in Python.
 
 The two key constructs are:
 
-- xtuples.iTuple: a base class for iterable data types, equipped with methods like .map(), .fold(), .pipe() and .partial()
+- xtuples.iTuple: a base class for iterable data types, equipped with methods like .map(), .fold(), .pipe() and .partial().
+
+```python
+assert (
+    iTuple.range(5)
+    .map(lambda x: x * 2)
+    .filter(lambda x: x < 5)
+    .accumulate(operator.sum)
+    .pipe(sum)
+) == 8
+```
+
 - xuples.nTuple.decorate: a decorator to inject .pipe() and .partial() into user-defined NamedTuples (as we can't subclass them directly).
 
-We expose:
+```python
+@nTuple.decorate
+class Example:
+    x: int
 
-- xtuples.iTuple: an iterable wrapper around tuple, 
-- xtuples.nTuple.decorate(): a decorator for user-defined named tuples (as we can't subclass them), exposing .pipe() and .partial()
-- xtuples.json.JSONEncoder and ...JSONDecoder: base classes for weakly-rich json encoding / decoding (rich in that classes are preserved, weak in that this is on class name alone and no further checks or guarantees are provided)
+assert Example(1, "a").pipe(lambda obj: obj.int) == 1
+```
+
+By equipping our data structures with .pipe() and .partial(), we're able to use method chaining to mimic the functional pipelines seen in languages like f#.
+
+As such, more or less all of my data structures these days are either an iTuple (or sub-class thereof), or a NamedTuple decorated with nTuple.decorate.
+
+### Performance
+
+Performance should generally be at worst, not worse than a non-optimised canonical equivalent implementation (and can often be significantly better).
+
+For instance, NamedTuples provide faster access, and are more memory efficient, than standard classes (or even raw dicts).
+
+< Insert demo >
+
+Similarly, iTuple - as a subclass of tuple - is more memory efficient, and provides as fast access, than a standard raw list.
+
+< Insert demo >
+
+The one caveat to this is that some methods which are lazy by default (returning generators), are treated eagerly - however this is something I am actively working on.
+
+### xtuples.json
+
+xtuples.json provides base classes for weakly-rich json encoding / decoding (rich in that classes are preserved, weak in that this is based on class name alone and no further checks or guarantees are provided).
 
 ## License
 

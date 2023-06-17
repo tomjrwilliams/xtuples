@@ -46,7 +46,7 @@ cov = [
   "test-cov",
   "cov-report",
 ]
-docs = "python -m pdoc --output-dir ./public ./"
+docs = "python -m pdoc --output-dir ./docs ./src/xtuples"
 
 [[tool.hatch.envs.all.matrix]]
 python = ["3.9"]
