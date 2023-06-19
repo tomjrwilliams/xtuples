@@ -3,15 +3,15 @@
 
 import json
 
-from .xtuples import REGISTRY, nTuple, iTuple, Example
+from .xtuples import REGISTRY, nTuple, iTuple, _Example
 
 # -----
 
 def cast_json_nTuple(obj):
     """
-    >>> ex = Example(1, "a")
+    >>> ex = _Example(1, "a")
     >>> ex.pipe(cast_json_nTuple)
-    {'x': 1, 's': 'a', 'it': {'__t__': 'iTuple', 'data': []}, '__t__': 'Example'}
+    {'x': 1, 's': 'a', 'it': {'__t__': 'iTuple', 'data': []}, '__t__': '_Example'}
     """
     d = {
         k: cast_json(v)
@@ -23,9 +23,9 @@ def cast_json_nTuple(obj):
 
 def uncast_json_nTuple(cls, obj):
     """
-    >>> ex = Example(1, "a")
-    >>> uncast_json_nTuple(Example, ex.pipe(cast_json_nTuple))
-    Example(x=1, s='a', it=iTuple())
+    >>> ex = _Example(1, "a")
+    >>> uncast_json_nTuple(_Example, ex.pipe(cast_json_nTuple))
+    _Example(x=1, s='a', it=iTuple())
     """
     assert obj["__t__"] == cls.__name__
     return cls(
@@ -56,9 +56,9 @@ def uncast_json_iTuple(cls, obj):
 
 def cast_json(obj, default = lambda obj: obj):
     """
-    >>> ex = Example(1, "a")
+    >>> ex = _Example(1, "a")
     >>> ex.pipe(cast_json)
-    {'x': 1, 's': 'a', 'it': {'__t__': 'iTuple', 'data': []}, '__t__': 'Example'}
+    {'x': 1, 's': 'a', 'it': {'__t__': 'iTuple', 'data': []}, '__t__': '_Example'}
     >>> iTuple.range(1).pipe(cast_json)
     {'__t__': 'iTuple', 'data': [0]}
     """
@@ -70,9 +70,9 @@ def cast_json(obj, default = lambda obj: obj):
 
 def uncast_json(obj):
     """
-    >>> ex = Example(1, "a")
+    >>> ex = _Example(1, "a")
     >>> uncast_json(ex.pipe(cast_json))
-    Example(x=1, s='a', it=iTuple())
+    _Example(x=1, s='a', it=iTuple())
     >>> uncast_json(iTuple.range(1).pipe(cast_json))
     iTuple(0)
     """
@@ -129,7 +129,7 @@ class JSONDecoder(json.JSONDecoder):
 # TODO: fString so can do .pipe ?
 def to_json(v, **kwargs):
     """
-    >>> print(iTuple([Example(1, "a")]).pipe(to_json, indent=2))
+    >>> print(iTuple([_Example(1, "a")]).pipe(to_json, indent=2))
     {
       "__t__": "iTuple",
       "data": [
@@ -140,12 +140,12 @@ def to_json(v, **kwargs):
             "__t__": "iTuple",
             "data": []
           },
-          "__t__": "Example"
+          "__t__": "_Example"
         }
       ]
     }
     >>> print(iTuple([
-    ...     iTuple([Example(1, "a")])
+    ...     iTuple([_Example(1, "a")])
     ... ]).pipe(to_json, indent=2))
     {
       "__t__": "iTuple",
@@ -160,14 +160,14 @@ def to_json(v, **kwargs):
                 "__t__": "iTuple",
                 "data": []
               },
-              "__t__": "Example"
+              "__t__": "_Example"
             }
           ]
         }
       ]
     }
-    >>> print(Example(2, "b", iTuple([
-    ...     iTuple([Example(1, "a")])
+    >>> print(_Example(2, "b", iTuple([
+    ...     iTuple([_Example(1, "a")])
     ... ])).pipe(to_json, indent=2))
     {
       "x": 2,
@@ -185,32 +185,32 @@ def to_json(v, **kwargs):
                   "__t__": "iTuple",
                   "data": []
                 },
-                "__t__": "Example"
+                "__t__": "_Example"
               }
             ]
           }
         ]
       },
-      "__t__": "Example"
+      "__t__": "_Example"
     }
     """
     return json.dumps(v, cls=JSONEncoder, **kwargs)
 
 def from_json(v: str, **kwargs):
     """
-    >>> ex = iTuple([Example(1, "a")])
+    >>> ex = iTuple([_Example(1, "a")])
     >>> from_json(ex.pipe(to_json))
-    iTuple(Example(x=1, s='a', it=iTuple()))
+    iTuple(_Example(x=1, s='a', it=iTuple()))
     >>> from_json(
-    ...     iTuple([iTuple([Example(1, "a")])]).pipe(to_json)
+    ...     iTuple([iTuple([_Example(1, "a")])]).pipe(to_json)
     ... )
-    iTuple(iTuple(Example(x=1, s='a', it=iTuple())))
+    iTuple(iTuple(_Example(x=1, s='a', it=iTuple())))
     >>> from_json(
-    ...     Example(2, "b", iTuple([
-    ...         iTuple([Example(1, "a")])
+    ...     _Example(2, "b", iTuple([
+    ...         iTuple([_Example(1, "a")])
     ...     ])).pipe(to_json)
     ... )
-    Example(x=2, s='b', it=iTuple(iTuple(Example(x=1, s='a', it=iTuple()))))
+    _Example(x=2, s='b', it=iTuple(iTuple(_Example(x=1, s='a', it=iTuple()))))
     """
     return json.loads(v, cls=JSONDecoder, **kwargs)
 

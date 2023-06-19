@@ -240,17 +240,17 @@ class iTuple(collections.UserList, tuple): # type: ignore
         if isinstance(data, cls):
             return data
         return super().__new__(cls, data=data)
-
-    @staticmethod
-    def wrap_tuple(data):
-        return data if isinstance(data, tuple) else tuple(data)
     
     def __init__(self, data = None):
         # TODO: option for lazy init?
         self.data = (
             tuple() if data is None
-            else self.wrap_tuple(data)
+            else data if isinstance(data, tuple)
+            else tuple(data)
         )
+        __getitem__ = self.data.__getitem__
+        self.__getitem__ = __getitem__
+        self.get = __getitem__
 
     def __repr__(self):
         s = super().__repr__()
@@ -438,15 +438,35 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(3).filter(lambda x: x > 1)
         iTuple(2)
         """
-        return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
+        # res = []
+        # for v in self.iter():
+        #     if f(v):
+        #         res.append(v)
+        return iTuple(data=(
+            v for v in self.iter() if f(v)
+        ))
+        # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
 
     def map(self, f, *iterables, lazy = False):
         """
         >>> iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         """
-        res = map(f, self, *iterables)
-        return res if lazy else iTuple(data=res)
+        if lazy:
+            return map(f, self.data, *iterables)
+        return iTuple(data = map(f, self.data, *iterables))
+
+    # def __getitem__(self, i):
+    #     return self.data[i]
+
+    def iter(self):
+        """
+        >>> for x in iTuple.range(3).iter(): print(x)
+        0
+        1
+        2
+        """
+        return iter(self.data)
 
     def enumerate(self):
         """
@@ -555,6 +575,9 @@ class iTuple(collections.UserList, tuple): # type: ignore
         res = iter()
         return res if lazy else type(self)(data=res)
 
+    def __iter__(self):
+        return iter(self.data)
+
     def tail_while(self, f, n = None):
         """
         >>> iTuple.range(3).tail_while(lambda v: v > 1)
@@ -647,16 +670,25 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(3).accumulate(operator.add)
         iTuple(0, 1, 3)
         """
-        res = itertools.accumulate(self, func=f, initial=initial)
-        return res if lazy else iTuple(data=res)
+        if lazy:
+            return itertools.accumulate(self, func=f, initial=initial)
+        return iTuple(data=itertools.accumulate(
+            self, func=f, initial=initial
+        ))
 
-    def foldcum(self, *args, **kwargs):
+    def foldcum(self, *args, initial=None, **kwargs):
         """
         >>> iTuple.range(3).foldcum(lambda acc, v: v)
         iTuple(0, 1, 2)
         >>> iTuple.range(3).foldcum(operator.add)
         iTuple(0, 1, 3)
         """
+        # res = []
+        # acc = initial
+        # for x in self.iter():
+        #     acc = f(acc, x)
+        #     res.append(acc)
+        # return iTuple(data=tuple(res))
         return self.accumulate(*args, **kwargs)
 
     def fold(self, f, initial=None):
@@ -668,11 +700,14 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(3).fold(operator.add)
         3
         """
+        # acc = initial
+        # for v in self.iter():
+        #     acc = f(acc, v)
+        # return iTuple(data=tuple(acc))
         if initial is not None:
-            res = functools.reduce(f, self, initial)
+            return functools.reduce(f, self, initial)
         else:
-            res = functools.reduce(f, self)
-        return res
+            return functools.reduce(f, self)
 
     # -----
 
@@ -683,7 +718,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
 # ---------------------------------------------------------------
 
 @nTuple.decorate
-class Example(typing.NamedTuple):
+class _Example(typing.NamedTuple):
     """
     >>> ex = Example(1, "a")
     >>> ex
@@ -726,7 +761,7 @@ __all__ = [
     "iTuple",
     "nTuple",
     "fDict",
-    "Example",
+    # "_Example",
 ]
 
 # ---------------------------------------------------------------
