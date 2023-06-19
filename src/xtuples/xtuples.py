@@ -24,15 +24,18 @@ REGISTRY = {}
 
 # ---------------------------------------------------------------
 
-def pipe(f, obj, *args, at = None, **kwargs):
+def pipe(f, obj, *args, at = None, discard=False, **kwargs):
     if at is None:
-        return f(obj, *args, **kwargs)
+        res = f(obj, *args, **kwargs)
     elif isinstance(at, int):
-        return f(*args[:at], obj, *args[at:], **kwargs)
+        res = f(*args[:at], obj, *args[at:], **kwargs)
     elif isinstance(at, str):
-        return f(*args, **{at: obj}, **kwargs)
+        res = f(*args, **{at: obj}, **kwargs)
     else:
         assert False, at
+    if not discard:
+        return res
+    return obj
 
 # ---------------------------------------------------------------
 
@@ -126,12 +129,19 @@ class nTuple(abc.ABC):
 
     @classmethod
     def decorate(meta, cls):
-        assert cls.__name__ not in REGISTRY
+        if cls.__name__ in REGISTRY:
+            print("NOTE, re-registering: {}".format(cls.__name__))
         cls.pipe = meta.pipe
         cls.partial = meta.partial
         cls.cls = meta
         REGISTRY[cls.__name__] = cls
         return cls
+
+    @classmethod
+    def replace(cls, *ks):
+        def f(obj, *vs):
+            return obj._replace(**{k: v for k, v in zip(ks, vs)})
+        return f
 
 # ---------------------------------------------------------------
 
@@ -248,9 +258,6 @@ class iTuple(collections.UserList, tuple): # type: ignore
             else data if isinstance(data, tuple)
             else tuple(data)
         )
-        __getitem__ = self.data.__getitem__
-        self.__getitem__ = __getitem__
-        self.get = __getitem__
 
     def __repr__(self):
         s = super().__repr__()
@@ -264,7 +271,8 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     @classmethod
     def decorate(meta, cls):
-        assert cls.__name__ not in REGISTRY
+        if cls.__name__ in REGISTRY:
+            print("NOTE, re-registering: {}".format(cls.__name__))
         REGISTRY[cls.__name__] = cls
         return cls
 
@@ -329,12 +337,18 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     # -----
 
+    def __len__(self):
+        return len(self.data)
+
+    def __contains__(self, v):
+        return v in self.data
+
     def len(self):
         """
         >>> iTuple.range(3).len()
         3
         """
-        return len(self)
+        return len(self.data)
 
     def append(self, value, *values):
         """
@@ -347,7 +361,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).append(1, (2,))
         iTuple(0, 1, (2,))
         """
-        return self + (value, *values)
+        return iTuple(data=(*self.data, value, *values))
 
     def prepend(self, value, *values):
         """
@@ -360,9 +374,9 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).prepend(1, (2,))
         iTuple(1, (2,), 0)
         """
-        return (value, *values) + self
+        return iTuple(data=(value, *values, *self.data))
 
-    def zip(self, *itrs, lazy = False):
+    def zip(self, *itrs, lazy = False, at = None):
         """
         >>> iTuple([[1, 1], [2, 2], [3, 3]]).zip()
         iTuple((1, 2, 3), (1, 2, 3))
@@ -373,8 +387,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
         """
         if len(itrs) == 0:
             res = zip(*self)
-        else:
+        elif at is None:
             res = zip(self, *itrs)
+        elif isinstance(at, int):
+            res = zip(*itrs[:at], self, *itrs[at:])
+        else:
+            assert False, at
         return res if lazy else iTuple(data=res)
 
     def flatten(self):
@@ -382,7 +400,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(3).map(lambda x: [x]).flatten()
         iTuple(0, 1, 2)
         """
-        return iTuple(itertools.chain(*self))
+        return iTuple(data=itertools.chain(*self))
 
     def extend(self, value, *values):
         """
@@ -397,7 +415,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).extend([1], [[2]], [2])
         iTuple(0, 1, [2], 2)
         """
-        return iTuple(itertools.chain.from_iterable(
+        return iTuple(data=itertools.chain.from_iterable(
             (self, value, *values)
         ))
 
@@ -414,7 +432,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).pretend([1], [[2]], [2])
         iTuple(1, [2], 2, 0)
         """
-        return iTuple(itertools.chain.from_iterable(
+        return iTuple(data=itertools.chain.from_iterable(
             (value, *values, self)
         ))
 
@@ -447,17 +465,34 @@ class iTuple(collections.UserList, tuple): # type: ignore
         ))
         # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
 
-    def map(self, f, *iterables, lazy = False):
+    def map(self, f, *iterables, at = None, lazy = False):
         """
         >>> iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         """
-        if lazy:
-            return map(f, self.data, *iterables)
-        return iTuple(data = map(f, self.data, *iterables))
+        # if lazy and at is None:
+        #     return map(f, self.data, *iterables)
+        if at is None:
+            return iTuple(data = map(f, self.data, *iterables))
+        elif isinstance(at, int):
+            return iTuple(data = map(
+                f, *iterables[:at], self.data, *iterables[at:]
+            ))
+        else:
+            assert False, at
 
-    # def __getitem__(self, i):
-    #     return self.data[i]
+    # args, kwargs
+    def mapstar(self, f):
+        return iTuple(data=itertools.starmap(f, self.data))
+
+    def get(self, i):
+        return self.data[i]
+
+    def __getitem__(self, i):
+        return self.data[i]
+
+    def __iter__(self):
+        return iter(self.data)
 
     def iter(self):
         """
@@ -574,9 +609,6 @@ class iTuple(collections.UserList, tuple): # type: ignore
                     return
         res = iter()
         return res if lazy else type(self)(data=res)
-
-    def __iter__(self):
-        return iter(self.data)
 
     def tail_while(self, f, n = None):
         """
