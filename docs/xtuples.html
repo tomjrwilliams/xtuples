@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>src.xtuples.xtuples API documentation</title>
+<title>xtuples.xtuples API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.xtuples.xtuples</code></h1>
+<h1 class="title">Module <code>xtuples.xtuples</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -835,7 +835,7 @@ __all__ = [
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="src.xtuples.xtuples.fDict"><code class="flex name class">
+<dt id="xtuples.xtuples.fDict"><code class="flex name class">
 <span>class <span class="ident">fDict</span></span>
 <span>(</span><span>dict=None, /, **kwargs)</span>
 </code></dt>
@@ -945,14 +945,14 @@ __all__ = [
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="src.xtuples.xtuples.fDict.data"><code class="name">var <span class="ident">data</span> : dict</code></dt>
+<dt id="xtuples.xtuples.fDict.data"><code class="name">var <span class="ident">data</span> : dict</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="src.xtuples.xtuples.fDict.invert"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.invert"><code class="name flex">
 <span>def <span class="ident">invert</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -971,7 +971,7 @@ __all__ = [
     return fDict((v, k) for k, v in self.items())</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.fDict.items_tuple"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.items_tuple"><code class="name flex">
 <span>def <span class="ident">items_tuple</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -990,7 +990,7 @@ iTuple((0, 1))
     return iTuple.from_items(self)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.fDict.keys_tuple"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.keys_tuple"><code class="name flex">
 <span>def <span class="ident">keys_tuple</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1009,7 +1009,7 @@ iTuple(0)
     return iTuple.from_keys(self)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.fDict.map_items"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.map_items"><code class="name flex">
 <span>def <span class="ident">map_items</span></span>(<span>self, f, *args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1030,7 +1030,7 @@ iTuple(0)
     )</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.fDict.map_keys"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.map_keys"><code class="name flex">
 <span>def <span class="ident">map_keys</span></span>(<span>self, f, *args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1051,7 +1051,7 @@ iTuple(0)
     )</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.fDict.map_values"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.map_values"><code class="name flex">
 <span>def <span class="ident">map_values</span></span>(<span>self, f, *args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1072,7 +1072,7 @@ iTuple(0)
     )</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.fDict.partial"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.partial"><code class="name flex">
 <span>def <span class="ident">partial</span></span>(<span>self, f, *args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1101,7 +1101,7 @@ iTuple(0)
     return functools.partial(f, self, *args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.fDict.pipe"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.pipe"><code class="name flex">
 <span>def <span class="ident">pipe</span></span>(<span>self, f, *args, at=None, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1127,7 +1127,7 @@ iTuple(0)
     return res</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.fDict.values_tuple"><code class="name flex">
+<dt id="xtuples.xtuples.fDict.values_tuple"><code class="name flex">
 <span>def <span class="ident">values_tuple</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1148,7 +1148,7 @@ iTuple(1)
 </dd>
 </dl>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple"><code class="flex name class">
+<dt id="xtuples.xtuples.iTuple"><code class="flex name class">
 <span>class <span class="ident">iTuple</span></span>
 <span>(</span><span>data=None)</span>
 </code></dt>
@@ -1678,14 +1678,14 @@ class iTuple(collections.UserList, tuple): # type: ignore
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="src.xtuples.xtuples.iTuple.data"><code class="name">var <span class="ident">data</span> : tuple</code></dt>
+<dt id="xtuples.xtuples.iTuple.data"><code class="name">var <span class="ident">data</span> : tuple</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
-<dt id="src.xtuples.xtuples.iTuple.decorate"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.decorate"><code class="name flex">
 <span>def <span class="ident">decorate</span></span>(<span>cls)</span>
 </code></dt>
 <dd>
@@ -1702,7 +1702,7 @@ def decorate(meta, cls):
     return cls</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.from_items"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.from_items"><code class="name flex">
 <span>def <span class="ident">from_items</span></span>(<span>d)</span>
 </code></dt>
 <dd>
@@ -1722,7 +1722,7 @@ def from_items(cls, d):
     return cls(d.items())</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.from_keys"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.from_keys"><code class="name flex">
 <span>def <span class="ident">from_keys</span></span>(<span>d)</span>
 </code></dt>
 <dd>
@@ -1742,7 +1742,7 @@ def from_keys(cls, d):
     return cls(d.keys())</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.from_values"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.from_values"><code class="name flex">
 <span>def <span class="ident">from_values</span></span>(<span>d)</span>
 </code></dt>
 <dd>
@@ -1762,7 +1762,7 @@ def from_values(cls, d):
     return cls(d.values())</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.range"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.range"><code class="name flex">
 <span>def <span class="ident">range</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1785,7 +1785,7 @@ def range(cls, *args, **kwargs):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="src.xtuples.xtuples.iTuple.accumulate"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.accumulate"><code class="name flex">
 <span>def <span class="ident">accumulate</span></span>(<span>self, f, initial=None, lazy=False)</span>
 </code></dt>
 <dd>
@@ -1816,7 +1816,7 @@ iTuple(0, 1, 3)
     ))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.append"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.append"><code class="name flex">
 <span>def <span class="ident">append</span></span>(<span>self, value, *values)</span>
 </code></dt>
 <dd>
@@ -1847,7 +1847,7 @@ iTuple(0, 1, (2,))
     return iTuple(data=(*self.data, value, *values))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.enumerate"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.enumerate"><code class="name flex">
 <span>def <span class="ident">enumerate</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1867,7 +1867,7 @@ iTuple((0, 0), (1, 1), (2, 2))
     return iTuple(enumerate(self))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.extend"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.extend"><code class="name flex">
 <span>def <span class="ident">extend</span></span>(<span>self, value, *values)</span>
 </code></dt>
 <dd>
@@ -1904,7 +1904,7 @@ iTuple(0, 1, [2], 2)
     ))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.filter"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.filter"><code class="name flex">
 <span>def <span class="ident">filter</span></span>(<span>self, f, eq=None, lazy=False)</span>
 </code></dt>
 <dd>
@@ -1929,7 +1929,7 @@ iTuple(2)
     ))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.filter_eq"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.filter_eq"><code class="name flex">
 <span>def <span class="ident">filter_eq</span></span>(<span>self, v, f=None, eq=None, lazy=False)</span>
 </code></dt>
 <dd>
@@ -1956,7 +1956,7 @@ iTuple(1)
     return res if lazy else type(self)(data=res)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.first"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.first"><code class="name flex">
 <span>def <span class="ident">first</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1975,7 +1975,7 @@ iTuple(1)
     return self[0]</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.first_where"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.first_where"><code class="name flex">
 <span>def <span class="ident">first_where</span></span>(<span>self, f)</span>
 </code></dt>
 <dd>
@@ -1997,7 +1997,7 @@ iTuple(1)
     return None</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.flatten"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.flatten"><code class="name flex">
 <span>def <span class="ident">flatten</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -2016,7 +2016,7 @@ iTuple(0, 1, 2)
     return iTuple(data=itertools.chain(*self))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.fold"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.fold"><code class="name flex">
 <span>def <span class="ident">fold</span></span>(<span>self, f, initial=None)</span>
 </code></dt>
 <dd>
@@ -2050,7 +2050,7 @@ iTuple(0, 1, 2)
         return functools.reduce(f, self)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.foldcum"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.foldcum"><code class="name flex">
 <span>def <span class="ident">foldcum</span></span>(<span>self, *args, initial=None, **kwargs)</span>
 </code></dt>
 <dd>
@@ -2079,7 +2079,7 @@ iTuple(0, 1, 3)
     return self.accumulate(*args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.get"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.get"><code class="name flex">
 <span>def <span class="ident">get</span></span>(<span>self, i)</span>
 </code></dt>
 <dd>
@@ -2092,7 +2092,7 @@ iTuple(0, 1, 3)
     return self.data[i]</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.groupby"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.groupby"><code class="name flex">
 <span>def <span class="ident">groupby</span></span>(<span>self, f, lazy=False, keys=False, pipe=None)</span>
 </code></dt>
 <dd>
@@ -2134,7 +2134,7 @@ iTuple((0, 1), (2,))
         return pipe(tuple(g) for k, g in res)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.islice"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.islice"><code class="name flex">
 <span>def <span class="ident">islice</span></span>(<span>self, left=None, right=None)</span>
 </code></dt>
 <dd>
@@ -2153,7 +2153,7 @@ iTuple(1, 2)
     return self[left:right]</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.iter"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.iter"><code class="name flex">
 <span>def <span class="ident">iter</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -2176,7 +2176,7 @@ iTuple(1, 2)
     return iter(self.data)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.last"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.last"><code class="name flex">
 <span>def <span class="ident">last</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -2195,7 +2195,7 @@ iTuple(1, 2)
     return self[-1]</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.last_where"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.last_where"><code class="name flex">
 <span>def <span class="ident">last_where</span></span>(<span>self, f)</span>
 </code></dt>
 <dd>
@@ -2217,7 +2217,7 @@ iTuple(1, 2)
     return None</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.len"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.len"><code class="name flex">
 <span>def <span class="ident">len</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -2236,7 +2236,7 @@ iTuple(1, 2)
     return len(self.data)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.map"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.map"><code class="name flex">
 <span>def <span class="ident">map</span></span>(<span>self, f, *iterables, at=None, lazy=False)</span>
 </code></dt>
 <dd>
@@ -2264,7 +2264,7 @@ iTuple(0, 2, 4)
         assert False, at</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.mapstar"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.mapstar"><code class="name flex">
 <span>def <span class="ident">mapstar</span></span>(<span>self, f)</span>
 </code></dt>
 <dd>
@@ -2277,7 +2277,7 @@ iTuple(0, 2, 4)
     return iTuple(data=itertools.starmap(f, self.data))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.partial"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.partial"><code class="name flex">
 <span>def <span class="ident">partial</span></span>(<span>self, f, *args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -2306,7 +2306,7 @@ iTuple(0, 3)
     return functools.partial(f, self, *args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.pipe"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.pipe"><code class="name flex">
 <span>def <span class="ident">pipe</span></span>(<span>self, f, *args, at=None, **kwargs)</span>
 </code></dt>
 <dd>
@@ -2333,7 +2333,7 @@ iTuple(0, 2)
     return pipe(f, self, *args, at = at, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.prepend"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.prepend"><code class="name flex">
 <span>def <span class="ident">prepend</span></span>(<span>self, value, *values)</span>
 </code></dt>
 <dd>
@@ -2364,7 +2364,7 @@ iTuple(1, (2,), 0)
     return iTuple(data=(value, *values, *self.data))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.pretend"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.pretend"><code class="name flex">
 <span>def <span class="ident">pretend</span></span>(<span>self, value, *values)</span>
 </code></dt>
 <dd>
@@ -2401,7 +2401,7 @@ iTuple(1, [2], 2, 0)
     ))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.reverse"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.reverse"><code class="name flex">
 <span>def <span class="ident">reverse</span></span>(<span>self, lazy=False)</span>
 </code></dt>
 <dd>
@@ -2422,7 +2422,7 @@ iTuple(2, 1, 0)
     return type(self)(data=reversed(self))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.sort"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.sort"><code class="name flex">
 <span>def <span class="ident">sort</span></span>(<span>self, f=&lt;function iTuple.&lt;lambda&gt;&gt;)</span>
 </code></dt>
 <dd>
@@ -2445,7 +2445,7 @@ iTuple(0, 1, 2)
     return type(self)(data=sorted(self, key = f))</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.tail"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.tail"><code class="name flex">
 <span>def <span class="ident">tail</span></span>(<span>self, n)</span>
 </code></dt>
 <dd>
@@ -2464,7 +2464,7 @@ iTuple(1, 2)
     return self[-n:]</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.tail_after"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.tail_after"><code class="name flex">
 <span>def <span class="ident">tail_after</span></span>(<span>self, f, n=None)</span>
 </code></dt>
 <dd>
@@ -2496,7 +2496,7 @@ iTuple(1)
     return self.tail(l + r).take(r)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.tail_while"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.tail_while"><code class="name flex">
 <span>def <span class="ident">tail_while</span></span>(<span>self, f, n=None)</span>
 </code></dt>
 <dd>
@@ -2521,7 +2521,7 @@ iTuple(2)
     return self.tail(i)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.take"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.take"><code class="name flex">
 <span>def <span class="ident">take</span></span>(<span>self, n)</span>
 </code></dt>
 <dd>
@@ -2540,7 +2540,7 @@ iTuple(0, 1)
     return self[:n]</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.take_after"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.take_after"><code class="name flex">
 <span>def <span class="ident">take_after</span></span>(<span>self, f, n=None, lazy=False)</span>
 </code></dt>
 <dd>
@@ -2574,7 +2574,7 @@ iTuple(1)
     return res if lazy else type(self)(data=res)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.take_while"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.take_while"><code class="name flex">
 <span>def <span class="ident">take_while</span></span>(<span>self, f, n=None, lazy=False)</span>
 </code></dt>
 <dd>
@@ -2602,7 +2602,7 @@ iTuple(0)
     return res if lazy else type(self)(data=res)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.unique"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.unique"><code class="name flex">
 <span>def <span class="ident">unique</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -2628,7 +2628,7 @@ iTuple(1, 3, 2, 4)
     return type(self)(data=iter())</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.iTuple.zip"><code class="name flex">
+<dt id="xtuples.xtuples.iTuple.zip"><code class="name flex">
 <span>def <span class="ident">zip</span></span>(<span>self, *itrs, lazy=False, at=None)</span>
 </code></dt>
 <dd>
@@ -2665,7 +2665,7 @@ iTuple((0, 1), (1, 2), (2, 3))
 </dd>
 </dl>
 </dd>
-<dt id="src.xtuples.xtuples.nTuple"><code class="flex name class">
+<dt id="xtuples.xtuples.nTuple"><code class="flex name class">
 <span>class <span class="ident">nTuple</span></span>
 </code></dt>
 <dd>
@@ -2781,7 +2781,7 @@ inheritance.</p></div>
 </ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="src.xtuples.xtuples.nTuple.annotations"><code class="name flex">
+<dt id="xtuples.xtuples.nTuple.annotations"><code class="name flex">
 <span>def <span class="ident">annotations</span></span>(<span>obj)</span>
 </code></dt>
 <dd>
@@ -2803,7 +2803,7 @@ def annotations(obj):
     return fDict(obj.__annotations__)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.nTuple.as_dict"><code class="name flex">
+<dt id="xtuples.xtuples.nTuple.as_dict"><code class="name flex">
 <span>def <span class="ident">as_dict</span></span>(<span>obj)</span>
 </code></dt>
 <dd>
@@ -2825,7 +2825,7 @@ def as_dict(cls, obj):
     return fDict(obj._asdict())</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.nTuple.decorate"><code class="name flex">
+<dt id="xtuples.xtuples.nTuple.decorate"><code class="name flex">
 <span>def <span class="ident">decorate</span></span>(<span>cls)</span>
 </code></dt>
 <dd>
@@ -2845,7 +2845,7 @@ def decorate(meta, cls):
     return cls</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.nTuple.is_instance"><code class="name flex">
+<dt id="xtuples.xtuples.nTuple.is_instance"><code class="name flex">
 <span>def <span class="ident">is_instance</span></span>(<span>obj)</span>
 </code></dt>
 <dd>
@@ -2877,7 +2877,7 @@ def is_instance(cls, obj):
     )</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.nTuple.is_subclass"><code class="name flex">
+<dt id="xtuples.xtuples.nTuple.is_subclass"><code class="name flex">
 <span>def <span class="ident">is_subclass</span></span>(<span>t)</span>
 </code></dt>
 <dd>
@@ -2914,7 +2914,7 @@ def is_subclass(cls, t):
     )</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.nTuple.partial"><code class="name flex">
+<dt id="xtuples.xtuples.nTuple.partial"><code class="name flex">
 <span>def <span class="ident">partial</span></span>(<span>obj, f, *args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -2928,7 +2928,7 @@ def partial(obj, f, *args, **kwargs):
     return functools.partial(f, obj, *args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.nTuple.pipe"><code class="name flex">
+<dt id="xtuples.xtuples.nTuple.pipe"><code class="name flex">
 <span>def <span class="ident">pipe</span></span>(<span>obj, f, *args, at=None, **kwargs)</span>
 </code></dt>
 <dd>
@@ -2964,7 +2964,7 @@ def pipe(obj, f, *args, at = None, **kwargs):
     return pipe(f, obj, *args, at = at, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="src.xtuples.xtuples.nTuple.replace"><code class="name flex">
+<dt id="xtuples.xtuples.nTuple.replace"><code class="name flex">
 <span>def <span class="ident">replace</span></span>(<span>*ks)</span>
 </code></dt>
 <dd>
@@ -2993,82 +2993,82 @@ def replace(cls, *ks):
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.xtuples" href="index.html">src.xtuples</a></code></li>
+<li><code><a title="xtuples" href="index.html">xtuples</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="src.xtuples.xtuples.fDict" href="#src.xtuples.xtuples.fDict">fDict</a></code></h4>
+<h4><code><a title="xtuples.xtuples.fDict" href="#xtuples.xtuples.fDict">fDict</a></code></h4>
 <ul class="two-column">
-<li><code><a title="src.xtuples.xtuples.fDict.data" href="#src.xtuples.xtuples.fDict.data">data</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.invert" href="#src.xtuples.xtuples.fDict.invert">invert</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.items_tuple" href="#src.xtuples.xtuples.fDict.items_tuple">items_tuple</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.keys_tuple" href="#src.xtuples.xtuples.fDict.keys_tuple">keys_tuple</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.map_items" href="#src.xtuples.xtuples.fDict.map_items">map_items</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.map_keys" href="#src.xtuples.xtuples.fDict.map_keys">map_keys</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.map_values" href="#src.xtuples.xtuples.fDict.map_values">map_values</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.partial" href="#src.xtuples.xtuples.fDict.partial">partial</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.pipe" href="#src.xtuples.xtuples.fDict.pipe">pipe</a></code></li>
-<li><code><a title="src.xtuples.xtuples.fDict.values_tuple" href="#src.xtuples.xtuples.fDict.values_tuple">values_tuple</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.data" href="#xtuples.xtuples.fDict.data">data</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.invert" href="#xtuples.xtuples.fDict.invert">invert</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.items_tuple" href="#xtuples.xtuples.fDict.items_tuple">items_tuple</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.keys_tuple" href="#xtuples.xtuples.fDict.keys_tuple">keys_tuple</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.map_items" href="#xtuples.xtuples.fDict.map_items">map_items</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.map_keys" href="#xtuples.xtuples.fDict.map_keys">map_keys</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.map_values" href="#xtuples.xtuples.fDict.map_values">map_values</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.partial" href="#xtuples.xtuples.fDict.partial">partial</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.pipe" href="#xtuples.xtuples.fDict.pipe">pipe</a></code></li>
+<li><code><a title="xtuples.xtuples.fDict.values_tuple" href="#xtuples.xtuples.fDict.values_tuple">values_tuple</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="src.xtuples.xtuples.iTuple" href="#src.xtuples.xtuples.iTuple">iTuple</a></code></h4>
+<h4><code><a title="xtuples.xtuples.iTuple" href="#xtuples.xtuples.iTuple">iTuple</a></code></h4>
 <ul class="two-column">
-<li><code><a title="src.xtuples.xtuples.iTuple.accumulate" href="#src.xtuples.xtuples.iTuple.accumulate">accumulate</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.append" href="#src.xtuples.xtuples.iTuple.append">append</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.data" href="#src.xtuples.xtuples.iTuple.data">data</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.decorate" href="#src.xtuples.xtuples.iTuple.decorate">decorate</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.enumerate" href="#src.xtuples.xtuples.iTuple.enumerate">enumerate</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.extend" href="#src.xtuples.xtuples.iTuple.extend">extend</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.filter" href="#src.xtuples.xtuples.iTuple.filter">filter</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.filter_eq" href="#src.xtuples.xtuples.iTuple.filter_eq">filter_eq</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.first" href="#src.xtuples.xtuples.iTuple.first">first</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.first_where" href="#src.xtuples.xtuples.iTuple.first_where">first_where</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.flatten" href="#src.xtuples.xtuples.iTuple.flatten">flatten</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.fold" href="#src.xtuples.xtuples.iTuple.fold">fold</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.foldcum" href="#src.xtuples.xtuples.iTuple.foldcum">foldcum</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.from_items" href="#src.xtuples.xtuples.iTuple.from_items">from_items</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.from_keys" href="#src.xtuples.xtuples.iTuple.from_keys">from_keys</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.from_values" href="#src.xtuples.xtuples.iTuple.from_values">from_values</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.get" href="#src.xtuples.xtuples.iTuple.get">get</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.groupby" href="#src.xtuples.xtuples.iTuple.groupby">groupby</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.islice" href="#src.xtuples.xtuples.iTuple.islice">islice</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.iter" href="#src.xtuples.xtuples.iTuple.iter">iter</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.last" href="#src.xtuples.xtuples.iTuple.last">last</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.last_where" href="#src.xtuples.xtuples.iTuple.last_where">last_where</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.len" href="#src.xtuples.xtuples.iTuple.len">len</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.map" href="#src.xtuples.xtuples.iTuple.map">map</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.mapstar" href="#src.xtuples.xtuples.iTuple.mapstar">mapstar</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.partial" href="#src.xtuples.xtuples.iTuple.partial">partial</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.pipe" href="#src.xtuples.xtuples.iTuple.pipe">pipe</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.prepend" href="#src.xtuples.xtuples.iTuple.prepend">prepend</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.pretend" href="#src.xtuples.xtuples.iTuple.pretend">pretend</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.range" href="#src.xtuples.xtuples.iTuple.range">range</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.reverse" href="#src.xtuples.xtuples.iTuple.reverse">reverse</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.sort" href="#src.xtuples.xtuples.iTuple.sort">sort</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.tail" href="#src.xtuples.xtuples.iTuple.tail">tail</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.tail_after" href="#src.xtuples.xtuples.iTuple.tail_after">tail_after</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.tail_while" href="#src.xtuples.xtuples.iTuple.tail_while">tail_while</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.take" href="#src.xtuples.xtuples.iTuple.take">take</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.take_after" href="#src.xtuples.xtuples.iTuple.take_after">take_after</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.take_while" href="#src.xtuples.xtuples.iTuple.take_while">take_while</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.unique" href="#src.xtuples.xtuples.iTuple.unique">unique</a></code></li>
-<li><code><a title="src.xtuples.xtuples.iTuple.zip" href="#src.xtuples.xtuples.iTuple.zip">zip</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.accumulate" href="#xtuples.xtuples.iTuple.accumulate">accumulate</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.append" href="#xtuples.xtuples.iTuple.append">append</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.data" href="#xtuples.xtuples.iTuple.data">data</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.decorate" href="#xtuples.xtuples.iTuple.decorate">decorate</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.enumerate" href="#xtuples.xtuples.iTuple.enumerate">enumerate</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.extend" href="#xtuples.xtuples.iTuple.extend">extend</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.filter" href="#xtuples.xtuples.iTuple.filter">filter</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.filter_eq" href="#xtuples.xtuples.iTuple.filter_eq">filter_eq</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.first" href="#xtuples.xtuples.iTuple.first">first</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.first_where" href="#xtuples.xtuples.iTuple.first_where">first_where</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.flatten" href="#xtuples.xtuples.iTuple.flatten">flatten</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.fold" href="#xtuples.xtuples.iTuple.fold">fold</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.foldcum" href="#xtuples.xtuples.iTuple.foldcum">foldcum</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.from_items" href="#xtuples.xtuples.iTuple.from_items">from_items</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.from_keys" href="#xtuples.xtuples.iTuple.from_keys">from_keys</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.from_values" href="#xtuples.xtuples.iTuple.from_values">from_values</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.get" href="#xtuples.xtuples.iTuple.get">get</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.groupby" href="#xtuples.xtuples.iTuple.groupby">groupby</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.islice" href="#xtuples.xtuples.iTuple.islice">islice</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.iter" href="#xtuples.xtuples.iTuple.iter">iter</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.last" href="#xtuples.xtuples.iTuple.last">last</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.last_where" href="#xtuples.xtuples.iTuple.last_where">last_where</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.len" href="#xtuples.xtuples.iTuple.len">len</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.map" href="#xtuples.xtuples.iTuple.map">map</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.mapstar" href="#xtuples.xtuples.iTuple.mapstar">mapstar</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.partial" href="#xtuples.xtuples.iTuple.partial">partial</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.pipe" href="#xtuples.xtuples.iTuple.pipe">pipe</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.prepend" href="#xtuples.xtuples.iTuple.prepend">prepend</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.pretend" href="#xtuples.xtuples.iTuple.pretend">pretend</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.range" href="#xtuples.xtuples.iTuple.range">range</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.reverse" href="#xtuples.xtuples.iTuple.reverse">reverse</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.sort" href="#xtuples.xtuples.iTuple.sort">sort</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.tail" href="#xtuples.xtuples.iTuple.tail">tail</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.tail_after" href="#xtuples.xtuples.iTuple.tail_after">tail_after</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.tail_while" href="#xtuples.xtuples.iTuple.tail_while">tail_while</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.take" href="#xtuples.xtuples.iTuple.take">take</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.take_after" href="#xtuples.xtuples.iTuple.take_after">take_after</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.take_while" href="#xtuples.xtuples.iTuple.take_while">take_while</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.unique" href="#xtuples.xtuples.iTuple.unique">unique</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.zip" href="#xtuples.xtuples.iTuple.zip">zip</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="src.xtuples.xtuples.nTuple" href="#src.xtuples.xtuples.nTuple">nTuple</a></code></h4>
+<h4><code><a title="xtuples.xtuples.nTuple" href="#xtuples.xtuples.nTuple">nTuple</a></code></h4>
 <ul class="two-column">
-<li><code><a title="src.xtuples.xtuples.nTuple.annotations" href="#src.xtuples.xtuples.nTuple.annotations">annotations</a></code></li>
-<li><code><a title="src.xtuples.xtuples.nTuple.as_dict" href="#src.xtuples.xtuples.nTuple.as_dict">as_dict</a></code></li>
-<li><code><a title="src.xtuples.xtuples.nTuple.decorate" href="#src.xtuples.xtuples.nTuple.decorate">decorate</a></code></li>
-<li><code><a title="src.xtuples.xtuples.nTuple.is_instance" href="#src.xtuples.xtuples.nTuple.is_instance">is_instance</a></code></li>
-<li><code><a title="src.xtuples.xtuples.nTuple.is_subclass" href="#src.xtuples.xtuples.nTuple.is_subclass">is_subclass</a></code></li>
-<li><code><a title="src.xtuples.xtuples.nTuple.partial" href="#src.xtuples.xtuples.nTuple.partial">partial</a></code></li>
-<li><code><a title="src.xtuples.xtuples.nTuple.pipe" href="#src.xtuples.xtuples.nTuple.pipe">pipe</a></code></li>
-<li><code><a title="src.xtuples.xtuples.nTuple.replace" href="#src.xtuples.xtuples.nTuple.replace">replace</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.annotations" href="#xtuples.xtuples.nTuple.annotations">annotations</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.as_dict" href="#xtuples.xtuples.nTuple.as_dict">as_dict</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.decorate" href="#xtuples.xtuples.nTuple.decorate">decorate</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.is_instance" href="#xtuples.xtuples.nTuple.is_instance">is_instance</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.is_subclass" href="#xtuples.xtuples.nTuple.is_subclass">is_subclass</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.partial" href="#xtuples.xtuples.nTuple.partial">partial</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.pipe" href="#xtuples.xtuples.nTuple.pipe">pipe</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.replace" href="#xtuples.xtuples.nTuple.replace">replace</a></code></li>
 </ul>
 </li>
 </ul>
