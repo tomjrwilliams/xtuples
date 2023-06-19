@@ -88,7 +88,7 @@ prices = (
     iTuple(Ticker_Price(ticker='IBM US Equity', price=100), Ticker_Price(ticker='AAPL US Equity', price=105), Ticker_Price(ticker='F US Equity', price=95))
     
 
-Here, we pipe into but discard the output of print(), so we still get back out and iTuple of Ticker_Prices (even whilst print() would otherwise return None).
+Here, we pipe into but discard the output of print(), so we still get back out an iTuple of Ticker_Prices (even whilst print() would otherwise return None).
 
 Let's say that we want to map the prices into some new currency:
 
@@ -148,16 +148,46 @@ For instance, iTuple is a relatively minimal wrapper around the built in tuple.
 
 #### Creation & Memory
 
-As such, creation takes a fairly similar time to that of a raw list (a raw tuple would probably be faster):
+As such, iTuple creation time is fairly similar to that of a raw list, at least when amortised over long enough sequences (though is generally slower for shorter ones):
 
 
 ```python
-%timeit xtuples.iTuple.range(100)
-%timeit list(range(100))
+%timeit xtuples.iTuple.range(10 ** 2)
+%timeit list(range(10 ** 2))
 ```
 
-    1.85 µs ± 26 ns per loop (mean ± std. dev. of 7 runs, 1,000,000 loops each)
-    560 ns ± 2.41 ns per loop (mean ± std. dev. of 7 runs, 1,000,000 loops each)
+    1.83 µs ± 33.2 ns per loop (mean ± std. dev. of 7 runs, 1,000,000 loops each)
+    570 ns ± 6.58 ns per loop (mean ± std. dev. of 7 runs, 1,000,000 loops each)
+    
+
+
+```python
+%timeit xtuples.iTuple.range(10 ** 3)
+%timeit list(range(10 ** 3))
+```
+
+    10.7 µs ± 104 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+    7.87 µs ± 102 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+    
+
+
+```python
+%timeit xtuples.iTuple.range(10 ** 4)
+%timeit list(range(10 ** 4))
+```
+
+    110 µs ± 627 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+    91.3 µs ± 506 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+    
+
+
+```python
+%timeit xtuples.iTuple.range(10 ** 6)
+%timeit list(range(10 ** 6))
+```
+
+    26.2 ms ± 656 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+    24.6 ms ± 717 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
     
 
 Memory usage is very similar:
