@@ -54,16 +54,16 @@ class nTuple(abc.ABC):
     @staticmethod
     def pipe(obj, f, *args, at = None, **kwargs):
         """
-        >>> example = Example(1, "a")
-        >>> example.pipe(lambda a, b: a, None)
-        Example(x=1, s='a', it=iTuple())
-        >>> example.pipe(lambda a, b: a, None, at = 1)
-        >>> example.pipe(lambda a, b: a, None, at = 'b')
-        >>> example.pipe(lambda a, b: a, a=None, at = 'b')
-        >>> example.pipe(lambda a, b: a, b=None, at = 'a')
-        Example(x=1, s='a', it=iTuple())
-        >>> example.pipe(lambda a, b: a, None, at = 0)
-        Example(x=1, s='a', it=iTuple())
+        >>> _Example = _Example(1, "a")
+        >>> _Example.pipe(lambda a, b: a, None)
+        _Example(x=1, s='a', it=iTuple())
+        >>> _Example.pipe(lambda a, b: a, None, at = 1)
+        >>> _Example.pipe(lambda a, b: a, None, at = 'b')
+        >>> _Example.pipe(lambda a, b: a, a=None, at = 'b')
+        >>> _Example.pipe(lambda a, b: a, b=None, at = 'a')
+        _Example(x=1, s='a', it=iTuple())
+        >>> _Example.pipe(lambda a, b: a, None, at = 0)
+        _Example(x=1, s='a', it=iTuple())
         """
         return pipe(f, obj, *args, at = at, **kwargs)
 
@@ -76,9 +76,9 @@ class nTuple(abc.ABC):
         """
         >>> nTuple.is_subclass(tuple)
         False
-        >>> nTuple.is_subclass(Example(1, "a"))
+        >>> nTuple.is_subclass(_Example(1, "a"))
         False
-        >>> nTuple.is_subclass(Example)
+        >>> nTuple.is_subclass(_Example)
         True
         """
         try:
@@ -97,9 +97,9 @@ class nTuple(abc.ABC):
         """
         >>> nTuple.is_instance(tuple)
         False
-        >>> nTuple.is_instance(Example)
+        >>> nTuple.is_instance(_Example)
         False
-        >>> nTuple.is_instance(Example(1, "a"))
+        >>> nTuple.is_instance(_Example(1, "a"))
         True
         """
         return (
@@ -112,7 +112,7 @@ class nTuple(abc.ABC):
     @staticmethod
     def annotations(obj):
         """
-        >>> ex = Example(1, "a")
+        >>> ex = _Example(1, "a")
         >>> ex.pipe(ex.cls.annotations)
         {'x': <class 'int'>, 's': <class 'str'>, 'it': <class 'xtuples.xtuples.iTuple'>}
         """
@@ -121,7 +121,7 @@ class nTuple(abc.ABC):
     @classmethod
     def as_dict(cls, obj):
         """
-        >>> ex = Example(1, "a")
+        >>> ex = _Example(1, "a")
         >>> ex.pipe(ex.cls.as_dict)
         {'x': 1, 's': 'a', 'it': iTuple()}
         """
@@ -486,9 +486,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
         return iTuple(data=itertools.starmap(f, self.data))
 
     def get(self, i):
+        if isinstance(i, slice):
+            return type(self)(data=self.data[i])
         return self.data[i]
 
     def __getitem__(self, i):
+        if isinstance(i, slice):
+            return type(self)(data=self.data[i])
         return self.data[i]
 
     def __iter__(self):
@@ -550,6 +554,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
         2
         """
         return self[-1]
+
+    def pop_first(self):
+        return self[1:]
+
+    def pop_last(self):
+        return self[:-1]
 
     def first_where(self, f):
         """
@@ -752,9 +762,9 @@ class iTuple(collections.UserList, tuple): # type: ignore
 @nTuple.decorate
 class _Example(typing.NamedTuple):
     """
-    >>> ex = Example(1, "a")
+    >>> ex = _Example(1, "a")
     >>> ex
-    Example(x=1, s='a', it=iTuple())
+    _Example(x=1, s='a', it=iTuple())
     >>> ex.cls
     <class 'xtuples.xtuples.nTuple'>
     >>> ex.pipe(lambda nt: nt.x)
