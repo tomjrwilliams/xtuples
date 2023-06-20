@@ -138,6 +138,11 @@ class nTuple(abc.ABC):
         return cls
 
     @classmethod
+    def enum(meta, cls):
+        cls = meta.decorate(cls)
+        return functools.lru_cache(maxsize=1)(cls)
+
+    @classmethod
     def replace(cls, *ks):
         def f(obj, *vs):
             return obj._replace(**{k: v for k, v in zip(ks, vs)})

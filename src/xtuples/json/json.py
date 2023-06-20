@@ -3,7 +3,7 @@
 
 import json
 
-from .xtuples import REGISTRY, nTuple, iTuple, _Example
+from ..xtuples import REGISTRY, nTuple, iTuple, _Example
 
 # -----
 
