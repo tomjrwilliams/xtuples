@@ -475,8 +475,8 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         """
-        # if lazy and at is None:
-        #     return map(f, self.data, *iterables)
+        if lazy and at is None:
+            return iLazy(map(f, self.data, *iterables))
         if at is None:
             return iTuple(data = map(f, self.data, *iterables))
         elif isinstance(at, int):
@@ -512,12 +512,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
         """
         return iter(self.data)
 
-    def enumerate(self):
+    def enumerate(self, lazy = False):
         """
         >>> iTuple.range(3).enumerate()
         iTuple((0, 0), (1, 1), (2, 2))
         """
-        # TODO: allow lazy
+        if lazy:
+            return iLazy(enumerate(self))
         return iTuple(enumerate(self))
 
     def groupby(
@@ -682,6 +683,10 @@ class iTuple(collections.UserList, tuple): # type: ignore
         """
         >>> iTuple.range(5).islice(1, 3)
         iTuple(1, 2)
+        >>> iTuple.range(5).islice(1)
+        iTuple(1, 2, 3, 4)
+        >>> iTuple.range(5).islice(right=3)
+        iTuple(0, 1, 2)
         """
         return self[left:right]
 
@@ -718,7 +723,9 @@ class iTuple(collections.UserList, tuple): # type: ignore
         iTuple(0, 1, 3)
         """
         if lazy:
-            return itertools.accumulate(self, func=f, initial=initial)
+            return iLazy(
+                itertools.accumulate(self, func=f, initial=initial)
+            )
         return iTuple(data=itertools.accumulate(
             self, func=f, initial=initial
         ))
@@ -761,6 +768,101 @@ class iTuple(collections.UserList, tuple): # type: ignore
     # combinatorics
 
     # -----
+
+# ---------------------------------------------------------------
+
+@dataclasses.dataclass(init = False, repr=True)
+class iLazy(iTuple): # type: ignore
+    __slots__ = ()
+
+    data: collections.abc.Iterable # type: ignore
+
+    # -----
+    
+    def __init__(self, data = None):
+        """
+        >>> iTuple.range(3).enumerate(lazy=True).mapstar(lambda i, v: i)
+        iTuple(0, 1, 2)
+        >>> iTuple.range(3).map(lambda v: v * 2, lazy=True)
+        iLazy(data=<map object at ...>)
+        """
+        self.data = (
+            tuple() if data is None
+            else data if isinstance(data, tuple)
+            else data
+        )
+
+    def realise(self):
+        """
+        >>> iTuple.range(3).map(lambda v: v * 2, lazy=True).realise()
+        iTuple(0, 2, 4)
+        """
+        if not isinstance(self.data, tuple):
+            return iTuple(data=tuple(self.data))
+        return self
+
+    def __getitem__(self, i):
+        return self.realise().__getitem__(i)
+
+    def get(self, i):
+        return self.realise().get(i)
+
+    # TODO: need realise call / custom implementation:
+    
+    def __len__(self):
+        return len(self.realise())
+
+    # def __contains__(self, v):
+    #     return
+
+    def islice(self, left = None, right = None):
+        return self.realise().islice(left=left, right=right)
+
+    def first(self):
+        """
+        >>> iLazy.range(3).first()
+        0
+        """
+        for v in self.data:
+            return v
+
+    def last(self):
+        """
+        >>> iLazy.range(3).last()
+        2
+        """
+        for v in reversed(self.data):
+            return v
+    
+    def take(self, n):
+        """
+        >>> iLazy.range(3).take(2)
+        iLazy(data=<generator object iLazy.take.<locals>.iter at ...>)
+        >>> iLazy.range(3).take(2).realise()
+        iTuple(0, 1)
+        """
+        def iter():
+            for i, v in enumerate(self.data):
+                yield v
+                if i == n - 1:
+                    return
+        return iLazy(iter())
+    
+    def tail(self, n):
+        """
+        >>> iLazy.range(3).tail(2)
+        iLazy(data=<list_reverseiterator object at ...>)
+        >>> iLazy.range(3).tail(2).realise()
+        iTuple(1, 2)
+        """
+        def iter():
+            for i, v in enumerate(reversed(self.data)):
+                yield v
+                if i == n - 1:
+                    return
+        acc = list(iter())
+        return iLazy(reversed(acc))
+    
 
 # ---------------------------------------------------------------
 
