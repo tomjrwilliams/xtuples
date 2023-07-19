@@ -143,9 +143,13 @@ class nTuple(abc.ABC):
         return functools.lru_cache(maxsize=1)(cls)
 
     @classmethod
-    def replace(cls, *ks):
-        def f(obj, *vs):
-            return obj._replace(**{k: v for k, v in zip(ks, vs)})
+    def update(cls, *ks):
+        if not len(ks):
+            def f(obj, **kws):
+                return obj._replace(**kws)
+        else:
+            def f(obj, *vs):
+                return obj._replace(**dict(zip(ks, vs)))
         return f
 
 # ---------------------------------------------------------------
@@ -260,12 +264,17 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # TODO: option for lazy init?
         self.data = (
             tuple() if data is None
+            else data.data if isinstance(data, iTuple)
             else data if isinstance(data, tuple)
             else tuple(data)
         )
 
     def __repr__(self):
-        s = super().__repr__()
+        """
+        >>> iTuple(iTuple((3, 2,))).data
+        (3, 2)
+        """
+        s = self.data.__repr__()
         return "{}({})".format(
             type(self).__name__,
             s[1:-2 if s[-2] == "," else -1],
@@ -282,6 +291,10 @@ class iTuple(collections.UserList, tuple): # type: ignore
         return cls
 
     # -----
+
+    @classmethod
+    def empty(cls):
+        return cls(tuple())
 
     @classmethod
     def range(cls, *args, **kwargs):
@@ -456,7 +469,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
             res = filter(lambda x: eq(f(x), v), self)
         return res if lazy else type(self)(data=res)
 
-    def filter(self, f, eq = None, lazy = False):
+    def filter(self, f, eq = None, lazy = False, **kws):
         """
         >>> iTuple.range(3).filter(lambda x: x > 1)
         iTuple(2)
@@ -466,7 +479,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         #     if f(v):
         #         res.append(v)
         return iTuple(data=(
-            v for v in self.iter() if f(v)
+            v for v in self.iter() if f(v, **kws)
         ))
         # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
 
@@ -482,6 +495,10 @@ class iTuple(collections.UserList, tuple): # type: ignore
         elif isinstance(at, int):
             return iTuple(data = map(
                 f, *iterables[:at], self.data, *iterables[at:]
+            ))
+        elif isinstance(at, str):
+            return iTuple(data = map(
+                f, *iterables, **{at: self.data}
             ))
         else:
             assert False, at
@@ -520,7 +537,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # TODO: allow lazy
         return iTuple(enumerate(self))
 
-    def groupby(
+    def chunkby(
         self, 
         f, 
         lazy = False, 
@@ -528,12 +545,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
         pipe= None,
     ):
         """
-        >>> iTuple.range(3).groupby(lambda x: x < 2)
-        iTuple((0, 1), (2,))
-        >>> iTuple.range(3).groupby(
+        >>> iTuple.range(3).chunkby(lambda x: x < 2)
+        iTuple(iTuple(0, 1), iTuple(2))
+        >>> iTuple.range(3).chunkby(
         ...    lambda x: x < 2, keys=True, pipe=fDict
         ... )
-        {True: (0, 1), False: (2,)}
+        {True: iTuple(0, 1), False: iTuple(2)}
         """
         # TODO: lazy no keys
         res = itertools.groupby(self, key=f)
@@ -542,9 +559,36 @@ class iTuple(collections.UserList, tuple): # type: ignore
         if pipe is None:
             pipe = iTuple
         if keys:
-            return pipe((k, tuple(g),) for k, g in res)
+            return pipe((k, iTuple(g),) for k, g in res)
         else:
-            return pipe(tuple(g) for k, g in res)
+            return pipe(iTuple(g) for k, g in res)
+
+    def groupby(
+        self, f, lazy = False, keys = False, pipe = None
+    ):
+        """
+        >>> iTuple.range(3).groupby(lambda x: x < 2)
+        iTuple(iTuple(2), iTuple(0, 1))
+        >>> iTuple.range(3).groupby(
+        ...    lambda x: x < 2, keys=True, pipe=fDict
+        ... )
+        {False: iTuple(2), True: iTuple(0, 1)}
+        """
+        res = (
+            self.chunkby(f, keys=True)
+            .sort(f = lambda kg: kg[0])
+            .chunkby(lambda kg: kg[0], keys = True)
+            .map(lambda k_kgs: (
+                k_kgs[0],
+                k_kgs[1].mapstar(lambda k, g: g).flatten(),
+            ))
+        )
+        if pipe is None:
+            pipe = iTuple
+        if keys:
+            return pipe((k, iTuple(g),) for k, g in res)
+        else:
+            return pipe(iTuple(g) for k, g in res)
 
     def first(self):
         """
