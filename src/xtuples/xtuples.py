@@ -253,21 +253,36 @@ class iTuple(collections.UserList, tuple): # type: ignore
     # -----
 
     @staticmethod
-    def __new__(cls, data = None):
+    def __new__(cls, *args):
         # NOTE: we use cls not array
         # so sub-classing *does* change identity
+        if not len(args):
+            return super().__new__(cls, data=None)
+        if len(args) == 1:
+            data = args[0]
+        else:
+            data = args
         if isinstance(data, cls):
             return data
         return super().__new__(cls, data=data)
     
-    def __init__(self, data = None):
+    def __init__(self, *args):
         # TODO: option for lazy init?
+        if len(args) == 0:
+            data = tuple()
+        elif len(args) == 1:
+            data = args[0]
+        else:
+            data = args
         self.data = (
-            tuple() if data is None
-            else data.data if isinstance(data, iTuple)
+            data.data if isinstance(data, iTuple)
             else data if isinstance(data, tuple)
             else tuple(data)
         )
+    
+    @classmethod
+    def one(cls, v):
+        return cls((v,))
 
     def __repr__(self):
         """
@@ -370,6 +385,8 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     def append(self, value, *values):
         """
+        >>> iTuple().append(1)
+        iTuple(1)
         >>> iTuple.range(1).append(1)
         iTuple(0, 1)
         >>> iTuple.range(1).append(1, 2)
@@ -379,10 +396,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).append(1, (2,))
         iTuple(0, 1, (2,))
         """
-        return iTuple(data=(*self.data, value, *values))
+        return iTuple((*self.data, value, *values,))
 
     def prepend(self, value, *values):
         """
+        >>> iTuple().prepend(1)
+        iTuple(1)
         >>> iTuple.range(1).prepend(1)
         iTuple(1, 0)
         >>> iTuple.range(1).prepend(1, 2)
@@ -392,7 +411,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).prepend(1, (2,))
         iTuple(1, (2,), 0)
         """
-        return iTuple(data=(value, *values, *self.data))
+        return iTuple((value, *values, *self.data,))
 
     def zip(self, *itrs, lazy = False, at = None):
         """
@@ -411,14 +430,14 @@ class iTuple(collections.UserList, tuple): # type: ignore
             res = zip(*itrs[:at], self, *itrs[at:])
         else:
             assert False, at
-        return res if lazy else iTuple(data=res)
+        return res if lazy else iTuple(res)
 
     def flatten(self):
         """
         >>> iTuple.range(3).map(lambda x: [x]).flatten()
         iTuple(0, 1, 2)
         """
-        return iTuple(data=itertools.chain(*self))
+        return iTuple(itertools.chain(*self))
 
     def extend(self, value, *values):
         """
@@ -433,7 +452,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).extend([1], [[2]], [2])
         iTuple(0, 1, [2], 2)
         """
-        return iTuple(data=itertools.chain.from_iterable(
+        return iTuple(itertools.chain.from_iterable(
             (self, value, *values)
         ))
 
@@ -450,7 +469,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).pretend([1], [[2]], [2])
         iTuple(1, [2], 2, 0)
         """
-        return iTuple(data=itertools.chain.from_iterable(
+        return iTuple(itertools.chain.from_iterable(
             (value, *values, self)
         ))
 
@@ -467,7 +486,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
             res = filter(lambda x: eq(x, v), self)
         else:
             res = filter(lambda x: eq(f(x), v), self)
-        return res if lazy else type(self)(data=res)
+        return res if lazy else type(self)(res)
 
     def filter(self, f, eq = None, lazy = False, **kws):
         """
@@ -478,7 +497,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # for v in self.iter():
         #     if f(v):
         #         res.append(v)
-        return iTuple(data=(
+        return iTuple((
             v for v in self.iter() if f(v, **kws)
         ))
         # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
@@ -491,13 +510,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # if lazy and at is None:
         #     return map(f, self.data, *iterables)
         if at is None:
-            return iTuple(data = map(f, self.data, *iterables))
+            return iTuple(map(f, self.data, *iterables))
         elif isinstance(at, int):
-            return iTuple(data = map(
+            return iTuple(map(
                 f, *iterables[:at], self.data, *iterables[at:]
             ))
         elif isinstance(at, str):
-            return iTuple(data = map(
+            return iTuple(map(
                 f, *iterables, **{at: self.data}
             ))
         else:
@@ -505,16 +524,16 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     # args, kwargs
     def mapstar(self, f):
-        return iTuple(data=itertools.starmap(f, self.data))
+        return iTuple(itertools.starmap(f, self.data))
 
     def get(self, i):
         if isinstance(i, slice):
-            return type(self)(data=self.data[i])
+            return type(self)(self.data[i])
         return self.data[i]
 
     def __getitem__(self, i):
         if isinstance(i, slice):
-            return type(self)(data=self.data[i])
+            return type(self)(self.data[i])
         return self.data[i]
 
     def __iter__(self):
@@ -651,7 +670,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         """
         if lazy:
             return reversed(self)
-        return type(self)(data=reversed(self))
+        return type(self)(reversed(self))
 
     def take_while(self, f, n = None, lazy = False):
         """
@@ -667,7 +686,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
                 else:
                     return
         res = iter()
-        return res if lazy else type(self)(data=res)
+        return res if lazy else type(self)(res)
 
     def tail_while(self, f, n = None):
         """
@@ -702,7 +721,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
                 else:
                     return
         res = iter()
-        return res if lazy else type(self)(data=res)
+        return res if lazy else type(self)(res)
 
     def tail_after(self, f, n = None):
         """
@@ -741,7 +760,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
             for v in itertools.filterfalse(seen_contains, self):
                 seen_add(v)
                 yield v
-        return type(self)(data=iter())
+        return type(self)(iter())
     
     def sort(self, f = lambda v: v):
         """
@@ -750,7 +769,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(3).sort()
         iTuple(0, 1, 2)
         """
-        return type(self)(data=sorted(self, key = f))
+        return type(self)(sorted(self, key = f))
 
     def accumulate(self, f, initial = None, lazy = False):
         """
@@ -763,7 +782,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         """
         if lazy:
             return itertools.accumulate(self, func=f, initial=initial)
-        return iTuple(data=itertools.accumulate(
+        return iTuple(itertools.accumulate(
             self, func=f, initial=initial
         ))
 
@@ -779,7 +798,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # for x in self.iter():
         #     acc = f(acc, x)
         #     res.append(acc)
-        # return iTuple(data=tuple(res))
+        # return iTuple(tuple(res))
         return self.accumulate(*args, **kwargs)
 
     def fold(self, f, initial=None):
@@ -794,7 +813,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # acc = initial
         # for v in self.iter():
         #     acc = f(acc, v)
-        # return iTuple(data=tuple(acc))
+        # return iTuple(tuple(acc))
         if initial is not None:
             return functools.reduce(f, self, initial)
         else:

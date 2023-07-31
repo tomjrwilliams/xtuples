@@ -51,7 +51,7 @@ def uncast_json_iTuple(cls, obj):
     iTuple(0)
     """
     assert obj["__t__"] == cls.__name__
-    return cls(data=obj["data"])
+    return cls(obj["data"])
 
 
 def cast_json(obj, default = lambda obj: obj):
