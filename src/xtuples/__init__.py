@@ -4,5 +4,5 @@
 from .xtuples import (
     iTuple,
     nTuple,
-    fDict,
+    # fDict,
 )

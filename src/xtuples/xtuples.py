@@ -20,10 +20,6 @@ import functools
 
 # ---------------------------------------------------------------
 
-REGISTRY = {}
-
-# ---------------------------------------------------------------
-
 def pipe(f, obj, *args, at = None, discard=False, **kwargs):
     if at is None:
         res = f(obj, *args, **kwargs)
@@ -128,29 +124,20 @@ class nTuple(abc.ABC):
         return fDict(obj._asdict())
 
     @classmethod
-    def decorate(meta, cls):
-        if cls.__name__ in REGISTRY:
-            print("NOTE, re-registering: {}".format(cls.__name__))
-        cls.pipe = meta.pipe
-        cls.partial = meta.partial
-        cls.cls = meta
-        REGISTRY[cls.__name__] = cls
-        return cls
+    def decorate(meta, **methods):
+        def decorator(cls):
+            cls.pipe = meta.pipe
+            cls.partial = meta.partial
+            cls.cls = meta
+            for k, f in methods.items():
+                setattr(cls, k, f)
+            return cls
+        return decorator
 
     @classmethod
     def enum(meta, cls):
-        cls = meta.decorate(cls)
+        cls = meta.decorate()(cls)
         return functools.lru_cache(maxsize=1)(cls)
-
-    @classmethod
-    def update(cls, *ks):
-        if not len(ks):
-            def f(obj, **kws):
-                return obj._replace(**kws)
-        else:
-            def f(obj, *vs):
-                return obj._replace(**dict(zip(ks, vs)))
-        return f
 
 # ---------------------------------------------------------------
 
@@ -213,34 +200,34 @@ class fDict(collections.UserDict):
         >>> fDict({0: 1}).map_keys(lambda v: v + 1)
         {1: 1}
         """
-        return fDict(
+        return fDict(dict(
             (f(k, *args, **kwargs), v) for k, v in self.items()
-        )
+        ))
 
     def map_values(self, f, *args, **kwargs):
         """
         >>> fDict({0: 1}).map_values(lambda v: v + 1)
         {0: 2}
         """
-        return fDict(
+        return fDict(dict(
             (k, f(v, *args, **kwargs)) for k, v in self.items()
-        )
+        ))
 
     def map_items(self, f, *args, **kwargs):
         """
         >>> fDict({0: 1}).map_items(lambda k, v: (v, k))
         {1: 0}
         """
-        return fDict(
+        return fDict(dict(
             f(k, v, *args, **kwargs) for k, v in self.items()
-        )
+        ))
 
     def invert(self):
         """
         >>> fDict({0: 1}).invert()
         {1: 0}
         """
-        return fDict((v, k) for k, v in self.items())
+        return fDict(dict((v, k) for k, v in self.items()))
 
 # ---------------------------------------------------------------
 
@@ -257,17 +244,18 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # NOTE: we use cls not array
         # so sub-classing *does* change identity
         if not len(args):
-            return super().__new__(cls, data=None)
+            return super().__new__(cls)
         if len(args) == 1:
             data = args[0]
         else:
             data = args
         if isinstance(data, cls):
             return data
-        return super().__new__(cls, data=data)
+        return super().__new__(cls, data)
     
     def __init__(self, *args):
         # TODO: option for lazy init?
+        data: tuple
         if len(args) == 0:
             data = tuple()
         elif len(args) == 1:
@@ -297,13 +285,6 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     def __hash__(self):
         return hash(self.data)
-
-    @classmethod
-    def decorate(meta, cls):
-        if cls.__name__ in REGISTRY:
-            print("NOTE, re-registering: {}".format(cls.__name__))
-        REGISTRY[cls.__name__] = cls
-        return cls
 
     # -----
 
@@ -382,6 +363,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
         3
         """
         return len(self.data)
+
+    def len_range(self):
+        """
+        >>> iTuple.range(3).len()
+        3
+        """
+        return type(self).range(self.len())
 
     def append(self, value, *values):
         """
@@ -473,6 +461,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
             (value, *values, self)
         ))
 
+    def any(self, f):
+        return any(self.map(f, lazy=True))
+    
+    def all(self, f):
+        return all(self.map(f, lazy=True))
+
     def filter_eq(self, v, f = None, eq = None, lazy = False):
         """
         >>> iTuple.range(3).filter_eq(1)
@@ -484,8 +478,10 @@ class iTuple(collections.UserList, tuple): # type: ignore
             res = filter(lambda x: f(x) == v, self)
         elif eq is not None:
             res = filter(lambda x: eq(x, v), self)
-        else:
+        elif f is not None and eq is not None:
             res = filter(lambda x: eq(f(x), v), self)
+        else:
+            assert False
         return res if lazy else type(self)(res)
 
     def filter(self, f, eq = None, lazy = False, **kws):
@@ -629,7 +625,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
     def pop_last(self):
         return self[:-1]
 
-    def first_where(self, f):
+    def first_where(self, f, default = None):
         """
         >>> iTuple.range(3).first_where(lambda v: v > 0)
         1
@@ -637,9 +633,9 @@ class iTuple(collections.UserList, tuple): # type: ignore
         for v in self:
             if f(v):
                 return v
-        return None
+        return default
 
-    def last_where(self, f):
+    def last_where(self, f, default = None):
         """
         >>> iTuple.range(3).last_where(lambda v: v < 2)
         1
@@ -647,7 +643,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         for v in reversed(self):
             if f(v):
                 return v
-        return None
+        return default
 
     def take(self, n):
         """
@@ -754,7 +750,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         iTuple(1, 3, 2, 4)
         """
         def iter():
-            seen = set()
+            seen: typing.Set = set()
             seen_add = seen.add
             seen_contains = seen.__contains__
             for v in itertools.filterfalse(seen_contains, self):
@@ -827,7 +823,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
 # ---------------------------------------------------------------
 
-@nTuple.decorate
+@nTuple.decorate()
 class _Example(typing.NamedTuple):
     """
     >>> ex = _Example(1, "a")
