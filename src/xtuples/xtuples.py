@@ -231,7 +231,7 @@ class fDict(collections.UserDict):
 
 # ---------------------------------------------------------------
 
-@dataclasses.dataclass(init = False, repr=True)
+# @dataclasses.dataclass(init = False, repr=True)
 class iTuple(collections.UserList, tuple): # type: ignore
     __slots__ = ()
 
@@ -244,14 +244,14 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # NOTE: we use cls not array
         # so sub-classing *does* change identity
         if not len(args):
-            return super().__new__(cls)
+            return super().__new__(cls, data=None) # type: ignore
         if len(args) == 1:
             data = args[0]
         else:
             data = args
-        if isinstance(data, cls):
+        if isinstance(data, iTuple):
             return data
-        return super().__new__(cls, data)
+        return super().__new__(cls, data=data) # type: ignore
     
     def __init__(self, *args):
         # TODO: option for lazy init?
@@ -260,13 +260,15 @@ class iTuple(collections.UserList, tuple): # type: ignore
             data = tuple()
         elif len(args) == 1:
             data = args[0]
+            if isinstance(data, iTuple):
+                data = data.data
+            elif isinstance(data, tuple):
+                data = data
+            else:
+                data = tuple(data)
         else:
             data = args
-        self.data = (
-            data.data if isinstance(data, iTuple)
-            else data if isinstance(data, tuple)
-            else tuple(data)
-        )
+        self.data = data
     
     @classmethod
     def one(cls, v):
