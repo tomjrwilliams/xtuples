@@ -239,6 +239,12 @@ class iTuple(tuple):
 
     @staticmethod
     def __new__(cls, *args):
+        if len(args) == 1:
+            v = args[0]
+            if isinstance(v, cls):
+                return v
+            elif not isinstance(v, collections.abc.Iterable):
+                return ().__new__(cls, (v,))
         return super().__new__(cls, *args)
 
     def __repr__(self):
@@ -265,6 +271,10 @@ class iTuple(tuple):
     @classmethod
     def empty(cls):
         return cls(tuple())
+
+    @classmethod
+    def one(cls, v):
+        return cls((v,))
 
     @classmethod
     def none(cls, n):
@@ -305,6 +315,18 @@ class iTuple(tuple):
         iTuple((0, 1), (1, 2))
         """
         return cls(d.items())
+    
+    @classmethod
+    def from_index(cls, s):
+        return cls(s.index)
+
+    @classmethod
+    def from_index_values(cls, s):
+        return cls(s.index.values)
+
+    @classmethod
+    def from_columns(cls, s):
+        return cls(s.columns)
 
     # -----
 
@@ -482,7 +504,7 @@ class iTuple(tuple):
 
     def is_none(self):
         return self.filter(lambda v: v is None)
-        
+
     def not_none(self):
         return self.filter(lambda v: v is not None)
 
