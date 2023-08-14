@@ -231,68 +231,48 @@ class fDict(collections.UserDict):
 
 # ---------------------------------------------------------------
 
-# @dataclasses.dataclass(init = False, repr=True)
-class iTuple(collections.UserList, tuple): # type: ignore
-    __slots__ = ()
+tuple_getitem = tuple.__getitem__
 
-    data: tuple # type: ignore
+class iTuple(tuple):
 
     # -----
 
     @staticmethod
     def __new__(cls, *args):
-        # NOTE: we use cls not array
-        # so sub-classing *does* change identity
-        if not len(args):
-            return super().__new__(cls, data=None) # type: ignore
-        if len(args) == 1:
-            data = args[0]
-        else:
-            data = args
-        if isinstance(data, iTuple):
-            return data
-        return super().__new__(cls, data=data) # type: ignore
-    
-    def __init__(self, *args):
-        # TODO: option for lazy init?
-        data: tuple
-        if len(args) == 0:
-            data = tuple()
-        elif len(args) == 1:
-            data = args[0]
-            if isinstance(data, iTuple):
-                data = data.data
-            elif isinstance(data, tuple):
-                data = data
-            else:
-                data = tuple(data)
-        else:
-            data = args
-        self.data = data
-    
-    @classmethod
-    def one(cls, v):
-        return cls((v,))
+        return super().__new__(cls, *args)
 
     def __repr__(self):
         """
-        >>> iTuple(iTuple((3, 2,))).data
-        (3, 2)
+        >>> iTuple()
+        iTuple()
+        >>> iTuple(iTuple((3, 2,)))
+        iTuple(3, 2)
         """
-        s = self.data.__repr__()
+        s = tuple.__repr__(self)
         return "{}({})".format(
             type(self).__name__,
             s[1:-2 if s[-2] == "," else -1],
         )
 
+    def __str__(self):
+        return self.__repr__()
+
     def __hash__(self):
-        return hash(self.data)
+        return hash(self)
 
     # -----
 
     @classmethod
     def empty(cls):
         return cls(tuple())
+
+    @classmethod
+    def none(cls, n):
+        """
+        >>> iTuple.none(3)
+        iTuple(None, None, None)
+        """
+        return cls((None for _ in range(n)))
 
     @classmethod
     def range(cls, *args, **kwargs):
@@ -353,18 +333,18 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     # -----
 
-    def __len__(self):
-        return len(self.data)
+    # def __len__(self):
+    #     return len(self)
 
-    def __contains__(self, v):
-        return v in self.data
+    # def __contains__(self, v):
+    #     return v in self
 
     def len(self):
         """
         >>> iTuple.range(3).len()
         3
         """
-        return len(self.data)
+        return len(self)
 
     def len_range(self):
         """
@@ -386,7 +366,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).append(1, (2,))
         iTuple(0, 1, (2,))
         """
-        return iTuple((*self.data, value, *values,))
+        return iTuple((*self, value, *values,))
 
     def prepend(self, value, *values):
         """
@@ -401,7 +381,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         >>> iTuple.range(1).prepend(1, (2,))
         iTuple(1, (2,), 0)
         """
-        return iTuple((value, *values, *self.data,))
+        return iTuple((value, *values, *self,))
 
     def zip(self, *itrs, lazy = False, at = None):
         """
@@ -500,42 +480,48 @@ class iTuple(collections.UserList, tuple): # type: ignore
         ))
         # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
 
+    def is_none(self):
+        return self.filter(lambda v: v is None)
+        
+    def not_none(self):
+        return self.filter(lambda v: v is not None)
+
     def map(self, f, *iterables, at = None, lazy = False):
         """
         >>> iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         """
         # if lazy and at is None:
-        #     return map(f, self.data, *iterables)
+        #     return map(f, self, *iterables)
         if at is None:
-            return iTuple(map(f, self.data, *iterables))
+            return iTuple(map(f, self, *iterables))
         elif isinstance(at, int):
             return iTuple(map(
-                f, *iterables[:at], self.data, *iterables[at:]
+                f, *iterables[:at], self, *iterables[at:]
             ))
         elif isinstance(at, str):
             return iTuple(map(
-                f, *iterables, **{at: self.data}
+                f, *iterables, **{at: self}
             ))
         else:
             assert False, at
 
     # args, kwargs
     def mapstar(self, f):
-        return iTuple(itertools.starmap(f, self.data))
+        return iTuple(itertools.starmap(f, self))
 
     def get(self, i):
         if isinstance(i, slice):
-            return type(self)(self.data[i])
-        return self.data[i]
+            return type(self)(self[i])
+        return self[i]
 
     def __getitem__(self, i):
         if isinstance(i, slice):
-            return type(self)(self.data[i])
-        return self.data[i]
+            return type(self)(tuple_getitem(self, i))
+        return tuple_getitem(self, i)
 
-    def __iter__(self):
-        return iter(self.data)
+    # def __iter__(self):
+    #     return iter(self)
 
     def iter(self):
         """
@@ -544,7 +530,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         1
         2
         """
-        return iter(self.data)
+        return iter(self)
 
     def enumerate(self):
         """
