@@ -497,10 +497,23 @@ class iTuple(tuple):
         # for v in self.iter():
         #     if f(v):
         #         res.append(v)
-        return iTuple((
+        return type(self)((
             v for v in self.iter() if f(v, **kws)
         ))
         # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
+
+    def filterstar(self, f, eq = None, lazy = False, **kws):
+        """
+        >>> iTuple.range(3).filter(lambda x: x > 1)
+        iTuple(2)
+        """
+        # res = []
+        # for v in self.iter():
+        #     if f(v):
+        #         res.append(v)
+        return type(self)((
+            v for v in self.iter() if f(*v, **kws)
+        ))
 
     def is_none(self):
         return self.filter(lambda v: v is None)
@@ -830,6 +843,8 @@ class iTuple(tuple):
     # combinatorics
 
     # -----
+
+ituple = iTuple
 
 # ---------------------------------------------------------------
 
