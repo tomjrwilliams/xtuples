@@ -10,9 +10,7 @@
 
 - [Installation](#installation)
 - [Overview](#overview)
-- [Examples](#examples)
 - [Performance](#performance)
-- [JSON](#xtuples.json)
 - [License](#license)
 
 ## Installation
@@ -29,9 +27,9 @@ In particular, it is designed to enable one to mimic the function pipelines seen
 
 The two key constructs are:
 
-- xtuples.iTuple: a tuple class class equipped with methods like .map() .filter() and .fold().
+- xtuples.iTuple: a tuple sub-class equipped with methods like .map() .filter() and .fold().
 
-- xuples.nTuple.decorate: a decorator to inject .pipe() .partial() and a dict of user defined methods into NamedTuples (as they can only have a single base class, this - in albeit somewhat hacky manner - allows us us to define re-usable method interfaces for named tuples).
+- xuples.nTuple.decorate: a decorator to inject .pipe() .partial() and a dict of user defined methods into NamedTuples (as they can only have a single base class, this - in an albeit somewhat hacky manner - allows us to define re-usable method interfaces for named tuples).
 
 Taken together, these tend to lead us away from inheritance, and more towards composition: to a code base comprised entirely of either free functions, or (immutable) data structures implemented using either of the above.
 
