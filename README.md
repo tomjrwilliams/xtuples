@@ -37,7 +37,7 @@ Taken together, these tend to lead us away from inheritance, and more towards co
 
 ## Performance
 
-Performance using xtuples should generally be, at worst, not (materially) worse than a non-optimised canonical equivalent (and can sometimes be somewhat better).
+Performance using xtuples is generally not worse than a canonical equivalent implementation, and can sometimes be significantly better.
 
 ### iTuple
 
@@ -45,7 +45,7 @@ For instance, iTuple is simply a subclass of the built-in tuple, so has very sim
 
 #### Creation
 
-For instance, creation is slightly slower than for an equivalent length list (at least when initialised from range):
+Creation is slightly slower than for an equivalent length list:
 
 
 ```python
@@ -413,7 +413,7 @@ Whilst providing comparable (if not slightly faster) field access times:
     34.9 ns ± 0.125 ns per loop (mean ± std. dev. of 7 runs, 10,000,000 loops each)
     
 
-Writes are, however, slower - the price we pay for immutability (and still faster than the frozen dataclass equivalent):
+Writes are, however, slower - the price we pay for immutability (but are still notably faster than the frozen dataclass equivalent):
 
 
 ```python
@@ -471,7 +471,7 @@ hash(Example_Nested(1, "s", xtuples.iTuple())) == hash(Example_Nested(1, "s", xt
 
 
 
-Finally, sorting is both provided by default (again, in comparison to dicts and classes), and works as one would expect (ie. by the first field, then the second field, and so on):
+Finally, sorting is both provided by default (again, in comparison to dicts and classes), and works as one would expect (ie. by the first field, then the second field, etc.):
 
 
 ```python
