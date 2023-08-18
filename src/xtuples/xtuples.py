@@ -1,4 +1,6 @@
 
+from __future__ import annotations
+
 # ---------------------------------------------------------------
 
 import abc
@@ -110,7 +112,7 @@ class nTuple(abc.ABC):
         """
         >>> ex = _Example(1, "a")
         >>> ex.pipe(ex.cls.annotations)
-        {'x': <class 'int'>, 's': <class 'str'>, 'it': <class 'xtuples.xtuples.iTuple'>}
+        {'x': ForwardRef('int'), 's': ForwardRef('str'), 'it': ForwardRef('iTuple')}
         """
         return fDict(obj.__annotations__)
 
@@ -521,7 +523,13 @@ class iTuple(tuple):
     def not_none(self):
         return self.filter(lambda v: v is not None)
 
-    def map(self, f, *iterables, at = None, lazy = False):
+    def map(
+        self,
+        f,
+        *iterables,
+        at = None,
+        lazy = False
+    ) -> iTuple:
         """
         >>> iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
@@ -837,6 +845,25 @@ class iTuple(tuple):
             return functools.reduce(f, self, initial)
         else:
             return functools.reduce(f, self)
+
+    def foldstar(self, f, initial=None):
+        """
+        >>> iTuple.range(3).fold(lambda acc, v: v)
+        2
+        >>> iTuple.range(3).fold(lambda acc, v: v, initial=0)
+        2
+        >>> iTuple.range(3).fold(operator.add)
+        3
+        """
+        # acc = initial
+        # for v in self.iter():
+        #     acc = f(acc, v)
+        # return iTuple(tuple(acc))
+        fstar = lambda acc, v: f(acc, *v)
+        if initial is not None:
+            return functools.reduce(fstar, self, initial)
+        else:
+            return functools.reduce(fstar, self)
 
     # -----
 
