@@ -33,6 +33,12 @@ The two key constructs are:
 
 Taken together, these tend to lead us away from inheritance, and more towards composition: to a code base comprised entirely of either free functions, or (immutable) data structures implemented using either of the above.
 
+Worth highlighting is the compatibility this promotes with [JAX](https://jax.readthedocs.io/en/latest/index.html), an auto-grad / machine learning framework from the Google Brain / Deepmind folks.
+
+First, with xtuples, all our data structures are kinds of tuple, so JAX can take derivatives of / through all of our data structures without any further work (though we occasionally have to pipe iTuple -> tuple when passing into an optimiser).
+
+Second, whilst JAX is designed with the (somewhat opinionated) assumption that user functions are pure (without side effects), because all of our data structures are immutable, an xtuples code base will already tend to  be comprised of pure functions by default (so will generally require very little further refactoring to be JAX compliant).
+
 ## Performance
 
 Performance using xtuples is generally not worse than a canonical equivalent implementation, and can sometimes be significantly better.
