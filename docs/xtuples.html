@@ -26,7 +26,9 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python"># ---------------------------------------------------------------
+<pre><code class="python">from __future__ import annotations
+
+# ---------------------------------------------------------------
 
 import abc
 import typing
@@ -44,10 +46,6 @@ import functools
 # where I cribbed from the itertools recipes (and other python docs), all credit to the original authors.
 
 # where i didn&#39;t, i probably should have.
-
-# ---------------------------------------------------------------
-
-REGISTRY = {}
 
 # ---------------------------------------------------------------
 
@@ -81,16 +79,16 @@ class nTuple(abc.ABC):
     @staticmethod
     def pipe(obj, f, *args, at = None, **kwargs):
         &#34;&#34;&#34;
-        &gt;&gt;&gt; example = Example(1, &#34;a&#34;)
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, None)
-        Example(x=1, s=&#39;a&#39;, it=iTuple())
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 1)
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = &#39;b&#39;)
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, a=None, at = &#39;b&#39;)
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, b=None, at = &#39;a&#39;)
-        Example(x=1, s=&#39;a&#39;, it=iTuple())
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 0)
-        Example(x=1, s=&#39;a&#39;, it=iTuple())
+        &gt;&gt;&gt; _Example = _Example(1, &#34;a&#34;)
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None)
+        _Example(x=1, s=&#39;a&#39;, it=iTuple())
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 1)
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = &#39;b&#39;)
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, a=None, at = &#39;b&#39;)
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, b=None, at = &#39;a&#39;)
+        _Example(x=1, s=&#39;a&#39;, it=iTuple())
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 0)
+        _Example(x=1, s=&#39;a&#39;, it=iTuple())
         &#34;&#34;&#34;
         return pipe(f, obj, *args, at = at, **kwargs)
 
@@ -103,9 +101,9 @@ class nTuple(abc.ABC):
         &#34;&#34;&#34;
         &gt;&gt;&gt; nTuple.is_subclass(tuple)
         False
-        &gt;&gt;&gt; nTuple.is_subclass(Example(1, &#34;a&#34;))
+        &gt;&gt;&gt; nTuple.is_subclass(_Example(1, &#34;a&#34;))
         False
-        &gt;&gt;&gt; nTuple.is_subclass(Example)
+        &gt;&gt;&gt; nTuple.is_subclass(_Example)
         True
         &#34;&#34;&#34;
         try:
@@ -124,9 +122,9 @@ class nTuple(abc.ABC):
         &#34;&#34;&#34;
         &gt;&gt;&gt; nTuple.is_instance(tuple)
         False
-        &gt;&gt;&gt; nTuple.is_instance(Example)
+        &gt;&gt;&gt; nTuple.is_instance(_Example)
         False
-        &gt;&gt;&gt; nTuple.is_instance(Example(1, &#34;a&#34;))
+        &gt;&gt;&gt; nTuple.is_instance(_Example(1, &#34;a&#34;))
         True
         &#34;&#34;&#34;
         return (
@@ -139,36 +137,36 @@ class nTuple(abc.ABC):
     @staticmethod
     def annotations(obj):
         &#34;&#34;&#34;
-        &gt;&gt;&gt; ex = Example(1, &#34;a&#34;)
+        &gt;&gt;&gt; ex = _Example(1, &#34;a&#34;)
         &gt;&gt;&gt; ex.pipe(ex.cls.annotations)
-        {&#39;x&#39;: &lt;class &#39;int&#39;&gt;, &#39;s&#39;: &lt;class &#39;str&#39;&gt;, &#39;it&#39;: &lt;class &#39;xtuples.xtuples.iTuple&#39;&gt;}
+        {&#39;x&#39;: ForwardRef(&#39;int&#39;), &#39;s&#39;: ForwardRef(&#39;str&#39;), &#39;it&#39;: ForwardRef(&#39;iTuple&#39;)}
         &#34;&#34;&#34;
         return fDict(obj.__annotations__)
 
     @classmethod
     def as_dict(cls, obj):
         &#34;&#34;&#34;
-        &gt;&gt;&gt; ex = Example(1, &#34;a&#34;)
+        &gt;&gt;&gt; ex = _Example(1, &#34;a&#34;)
         &gt;&gt;&gt; ex.pipe(ex.cls.as_dict)
         {&#39;x&#39;: 1, &#39;s&#39;: &#39;a&#39;, &#39;it&#39;: iTuple()}
         &#34;&#34;&#34;
         return fDict(obj._asdict())
 
     @classmethod
-    def decorate(meta, cls):
-        if cls.__name__ in REGISTRY:
-            print(&#34;NOTE, re-registering: {}&#34;.format(cls.__name__))
-        cls.pipe = meta.pipe
-        cls.partial = meta.partial
-        cls.cls = meta
-        REGISTRY[cls.__name__] = cls
-        return cls
+    def decorate(meta, **methods):
+        def decorator(cls):
+            cls.pipe = meta.pipe
+            cls.partial = meta.partial
+            cls.cls = meta
+            for k, f in methods.items():
+                setattr(cls, k, f)
+            return cls
+        return decorator
 
     @classmethod
-    def replace(cls, *ks):
-        def f(obj, *vs):
-            return obj._replace(**{k: v for k, v in zip(ks, vs)})
-        return f
+    def enum(meta, cls):
+        cls = meta.decorate()(cls)
+        return functools.lru_cache(maxsize=1)(cls)
 
 # ---------------------------------------------------------------
 
@@ -231,79 +229,89 @@ class fDict(collections.UserDict):
         &gt;&gt;&gt; fDict({0: 1}).map_keys(lambda v: v + 1)
         {1: 1}
         &#34;&#34;&#34;
-        return fDict(
+        return fDict(dict(
             (f(k, *args, **kwargs), v) for k, v in self.items()
-        )
+        ))
 
     def map_values(self, f, *args, **kwargs):
         &#34;&#34;&#34;
         &gt;&gt;&gt; fDict({0: 1}).map_values(lambda v: v + 1)
         {0: 2}
         &#34;&#34;&#34;
-        return fDict(
+        return fDict(dict(
             (k, f(v, *args, **kwargs)) for k, v in self.items()
-        )
+        ))
 
     def map_items(self, f, *args, **kwargs):
         &#34;&#34;&#34;
         &gt;&gt;&gt; fDict({0: 1}).map_items(lambda k, v: (v, k))
         {1: 0}
         &#34;&#34;&#34;
-        return fDict(
+        return fDict(dict(
             f(k, v, *args, **kwargs) for k, v in self.items()
-        )
+        ))
 
     def invert(self):
         &#34;&#34;&#34;
         &gt;&gt;&gt; fDict({0: 1}).invert()
         {1: 0}
         &#34;&#34;&#34;
-        return fDict((v, k) for k, v in self.items())
+        return fDict(dict((v, k) for k, v in self.items()))
 
 # ---------------------------------------------------------------
 
-@dataclasses.dataclass(init = False, repr=True)
-class iTuple(collections.UserList, tuple): # type: ignore
-    __slots__ = ()
+tuple_getitem = tuple.__getitem__
 
-    data: tuple # type: ignore
+class iTuple(tuple):
 
     # -----
 
     @staticmethod
-    def __new__(cls, data = None):
-        # NOTE: we use cls not array
-        # so sub-classing *does* change identity
-        if isinstance(data, cls):
-            return data
-        return super().__new__(cls, data=data)
-    
-    def __init__(self, data = None):
-        # TODO: option for lazy init?
-        self.data = (
-            tuple() if data is None
-            else data if isinstance(data, tuple)
-            else tuple(data)
-        )
+    def __new__(cls, *args):
+        if len(args) == 1:
+            v = args[0]
+            if isinstance(v, cls):
+                return v
+            elif not isinstance(v, collections.abc.Iterable):
+                return ().__new__(cls, (v,))
+        return super().__new__(cls, *args)
 
     def __repr__(self):
-        s = super().__repr__()
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple()
+        iTuple()
+        &gt;&gt;&gt; iTuple(iTuple((3, 2,)))
+        iTuple(3, 2)
+        &#34;&#34;&#34;
+        s = tuple.__repr__(self)
         return &#34;{}({})&#34;.format(
             type(self).__name__,
             s[1:-2 if s[-2] == &#34;,&#34; else -1],
         )
 
-    def __hash__(self):
-        return hash(self.data)
+    def __str__(self):
+        return self.__repr__()
 
-    @classmethod
-    def decorate(meta, cls):
-        if cls.__name__ in REGISTRY:
-            print(&#34;NOTE, re-registering: {}&#34;.format(cls.__name__))
-        REGISTRY[cls.__name__] = cls
-        return cls
+    def __hash__(self):
+        return hash(self)
 
     # -----
+
+    @classmethod
+    def empty(cls):
+        return cls(tuple())
+
+    @classmethod
+    def one(cls, v):
+        return cls((v,))
+
+    @classmethod
+    def none(cls, n):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.none(3)
+        iTuple(None, None, None)
+        &#34;&#34;&#34;
+        return cls((None for _ in range(n)))
 
     @classmethod
     def range(cls, *args, **kwargs):
@@ -336,6 +344,18 @@ class iTuple(collections.UserList, tuple): # type: ignore
         iTuple((0, 1), (1, 2))
         &#34;&#34;&#34;
         return cls(d.items())
+    
+    @classmethod
+    def from_index(cls, s):
+        return cls(s.index)
+
+    @classmethod
+    def from_index_values(cls, s):
+        return cls(s.index.values)
+
+    @classmethod
+    def from_columns(cls, s):
+        return cls(s.columns)
 
     # -----
 
@@ -364,21 +384,30 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     # -----
 
-    def __len__(self):
-        return len(self.data)
+    # def __len__(self):
+    #     return len(self)
 
-    def __contains__(self, v):
-        return v in self.data
+    # def __contains__(self, v):
+    #     return v in self
 
     def len(self):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).len()
         3
         &#34;&#34;&#34;
-        return len(self.data)
+        return len(self)
+
+    def len_range(self):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.range(3).len()
+        3
+        &#34;&#34;&#34;
+        return type(self).range(self.len())
 
     def append(self, value, *values):
         &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple().append(1)
+        iTuple(1)
         &gt;&gt;&gt; iTuple.range(1).append(1)
         iTuple(0, 1)
         &gt;&gt;&gt; iTuple.range(1).append(1, 2)
@@ -388,10 +417,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(1).append(1, (2,))
         iTuple(0, 1, (2,))
         &#34;&#34;&#34;
-        return iTuple(data=(*self.data, value, *values))
+        return iTuple((*self, value, *values,))
 
     def prepend(self, value, *values):
         &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple().prepend(1)
+        iTuple(1)
         &gt;&gt;&gt; iTuple.range(1).prepend(1)
         iTuple(1, 0)
         &gt;&gt;&gt; iTuple.range(1).prepend(1, 2)
@@ -401,7 +432,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(1).prepend(1, (2,))
         iTuple(1, (2,), 0)
         &#34;&#34;&#34;
-        return iTuple(data=(value, *values, *self.data))
+        return iTuple((value, *values, *self,))
 
     def zip(self, *itrs, lazy = False, at = None):
         &#34;&#34;&#34;
@@ -420,14 +451,14 @@ class iTuple(collections.UserList, tuple): # type: ignore
             res = zip(*itrs[:at], self, *itrs[at:])
         else:
             assert False, at
-        return res if lazy else iTuple(data=res)
+        return res if lazy else iTuple(res)
 
     def flatten(self):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).map(lambda x: [x]).flatten()
         iTuple(0, 1, 2)
         &#34;&#34;&#34;
-        return iTuple(data=itertools.chain(*self))
+        return iTuple(itertools.chain(*self))
 
     def extend(self, value, *values):
         &#34;&#34;&#34;
@@ -442,7 +473,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(1).extend([1], [[2]], [2])
         iTuple(0, 1, [2], 2)
         &#34;&#34;&#34;
-        return iTuple(data=itertools.chain.from_iterable(
+        return iTuple(itertools.chain.from_iterable(
             (self, value, *values)
         ))
 
@@ -459,9 +490,15 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(1).pretend([1], [[2]], [2])
         iTuple(1, [2], 2, 0)
         &#34;&#34;&#34;
-        return iTuple(data=itertools.chain.from_iterable(
+        return iTuple(itertools.chain.from_iterable(
             (value, *values, self)
         ))
+
+    def any(self, f):
+        return any(self.map(f, lazy=True))
+    
+    def all(self, f):
+        return all(self.map(f, lazy=True))
 
     def filter_eq(self, v, f = None, eq = None, lazy = False):
         &#34;&#34;&#34;
@@ -474,11 +511,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
             res = filter(lambda x: f(x) == v, self)
         elif eq is not None:
             res = filter(lambda x: eq(x, v), self)
-        else:
+        elif f is not None and eq is not None:
             res = filter(lambda x: eq(f(x), v), self)
-        return res if lazy else type(self)(data=res)
+        else:
+            assert False
+        return res if lazy else type(self)(res)
 
-    def filter(self, f, eq = None, lazy = False):
+    def filter(self, f, eq = None, lazy = False, **kws):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).filter(lambda x: x &gt; 1)
         iTuple(2)
@@ -487,39 +526,72 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # for v in self.iter():
         #     if f(v):
         #         res.append(v)
-        return iTuple(data=(
-            v for v in self.iter() if f(v)
+        return type(self)((
+            v for v in self.iter() if f(v, **kws)
         ))
         # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
 
-    def map(self, f, *iterables, at = None, lazy = False):
+    def filterstar(self, f, eq = None, lazy = False, **kws):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.range(3).filter(lambda x: x &gt; 1)
+        iTuple(2)
+        &#34;&#34;&#34;
+        # res = []
+        # for v in self.iter():
+        #     if f(v):
+        #         res.append(v)
+        return type(self)((
+            v for v in self.iter() if f(*v, **kws)
+        ))
+
+    def is_none(self):
+        return self.filter(lambda v: v is None)
+
+    def not_none(self):
+        return self.filter(lambda v: v is not None)
+
+    def map(
+        self,
+        f,
+        *iterables,
+        at = None,
+        lazy = False
+    ) -&gt; iTuple:
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         &#34;&#34;&#34;
         # if lazy and at is None:
-        #     return map(f, self.data, *iterables)
+        #     return map(f, self, *iterables)
         if at is None:
-            return iTuple(data = map(f, self.data, *iterables))
+            return iTuple(map(f, self, *iterables))
         elif isinstance(at, int):
-            return iTuple(data = map(
-                f, *iterables[:at], self.data, *iterables[at:]
+            return iTuple(map(
+                f, *iterables[:at], self, *iterables[at:]
+            ))
+        elif isinstance(at, str):
+            return iTuple(map(
+                f, *iterables, **{at: self}
             ))
         else:
             assert False, at
 
     # args, kwargs
     def mapstar(self, f):
-        return iTuple(data=itertools.starmap(f, self.data))
+        return iTuple(itertools.starmap(f, self))
 
     def get(self, i):
-        return self.data[i]
+        if isinstance(i, slice):
+            return type(self)(self[i])
+        return self[i]
 
     def __getitem__(self, i):
-        return self.data[i]
+        if isinstance(i, slice):
+            return type(self)(tuple_getitem(self, i))
+        return tuple_getitem(self, i)
 
-    def __iter__(self):
-        return iter(self.data)
+    # def __iter__(self):
+    #     return iter(self)
 
     def iter(self):
         &#34;&#34;&#34;
@@ -528,7 +600,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         1
         2
         &#34;&#34;&#34;
-        return iter(self.data)
+        return iter(self)
 
     def enumerate(self):
         &#34;&#34;&#34;
@@ -538,7 +610,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # TODO: allow lazy
         return iTuple(enumerate(self))
 
-    def groupby(
+    def chunkby(
         self, 
         f, 
         lazy = False, 
@@ -546,12 +618,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
         pipe= None,
     ):
         &#34;&#34;&#34;
-        &gt;&gt;&gt; iTuple.range(3).groupby(lambda x: x &lt; 2)
-        iTuple((0, 1), (2,))
-        &gt;&gt;&gt; iTuple.range(3).groupby(
+        &gt;&gt;&gt; iTuple.range(3).chunkby(lambda x: x &lt; 2)
+        iTuple(iTuple(0, 1), iTuple(2))
+        &gt;&gt;&gt; iTuple.range(3).chunkby(
         ...    lambda x: x &lt; 2, keys=True, pipe=fDict
         ... )
-        {True: (0, 1), False: (2,)}
+        {True: iTuple(0, 1), False: iTuple(2)}
         &#34;&#34;&#34;
         # TODO: lazy no keys
         res = itertools.groupby(self, key=f)
@@ -560,9 +632,36 @@ class iTuple(collections.UserList, tuple): # type: ignore
         if pipe is None:
             pipe = iTuple
         if keys:
-            return pipe((k, tuple(g),) for k, g in res)
+            return pipe((k, iTuple(g),) for k, g in res)
         else:
-            return pipe(tuple(g) for k, g in res)
+            return pipe(iTuple(g) for k, g in res)
+
+    def groupby(
+        self, f, lazy = False, keys = False, pipe = None
+    ):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.range(3).groupby(lambda x: x &lt; 2)
+        iTuple(iTuple(2), iTuple(0, 1))
+        &gt;&gt;&gt; iTuple.range(3).groupby(
+        ...    lambda x: x &lt; 2, keys=True, pipe=fDict
+        ... )
+        {False: iTuple(2), True: iTuple(0, 1)}
+        &#34;&#34;&#34;
+        res = (
+            self.chunkby(f, keys=True)
+            .sort(f = lambda kg: kg[0])
+            .chunkby(lambda kg: kg[0], keys = True)
+            .map(lambda k_kgs: (
+                k_kgs[0],
+                k_kgs[1].mapstar(lambda k, g: g).flatten(),
+            ))
+        )
+        if pipe is None:
+            pipe = iTuple
+        if keys:
+            return pipe((k, iTuple(g),) for k, g in res)
+        else:
+            return pipe(iTuple(g) for k, g in res)
 
     def first(self):
         &#34;&#34;&#34;
@@ -578,7 +677,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &#34;&#34;&#34;
         return self[-1]
 
-    def first_where(self, f):
+    def pop_first(self):
+        return self[1:]
+
+    def pop_last(self):
+        return self[:-1]
+
+    def first_where(self, f, default = None):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).first_where(lambda v: v &gt; 0)
         1
@@ -586,9 +691,9 @@ class iTuple(collections.UserList, tuple): # type: ignore
         for v in self:
             if f(v):
                 return v
-        return None
+        return default
 
-    def last_where(self, f):
+    def last_where(self, f, default = None):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).last_where(lambda v: v &lt; 2)
         1
@@ -596,7 +701,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         for v in reversed(self):
             if f(v):
                 return v
-        return None
+        return default
 
     def take(self, n):
         &#34;&#34;&#34;
@@ -619,7 +724,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &#34;&#34;&#34;
         if lazy:
             return reversed(self)
-        return type(self)(data=reversed(self))
+        return type(self)(reversed(self))
 
     def take_while(self, f, n = None, lazy = False):
         &#34;&#34;&#34;
@@ -635,7 +740,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
                 else:
                     return
         res = iter()
-        return res if lazy else type(self)(data=res)
+        return res if lazy else type(self)(res)
 
     def tail_while(self, f, n = None):
         &#34;&#34;&#34;
@@ -670,7 +775,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
                 else:
                     return
         res = iter()
-        return res if lazy else type(self)(data=res)
+        return res if lazy else type(self)(res)
 
     def tail_after(self, f, n = None):
         &#34;&#34;&#34;
@@ -703,13 +808,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
         iTuple(1, 3, 2, 4)
         &#34;&#34;&#34;
         def iter():
-            seen = set()
+            seen: typing.Set = set()
             seen_add = seen.add
             seen_contains = seen.__contains__
             for v in itertools.filterfalse(seen_contains, self):
                 seen_add(v)
                 yield v
-        return type(self)(data=iter())
+        return type(self)(iter())
     
     def sort(self, f = lambda v: v):
         &#34;&#34;&#34;
@@ -718,7 +823,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(3).sort()
         iTuple(0, 1, 2)
         &#34;&#34;&#34;
-        return type(self)(data=sorted(self, key = f))
+        return type(self)(sorted(self, key = f))
 
     def accumulate(self, f, initial = None, lazy = False):
         &#34;&#34;&#34;
@@ -731,7 +836,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &#34;&#34;&#34;
         if lazy:
             return itertools.accumulate(self, func=f, initial=initial)
-        return iTuple(data=itertools.accumulate(
+        return iTuple(itertools.accumulate(
             self, func=f, initial=initial
         ))
 
@@ -747,7 +852,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # for x in self.iter():
         #     acc = f(acc, x)
         #     res.append(acc)
-        # return iTuple(data=tuple(res))
+        # return iTuple(tuple(res))
         return self.accumulate(*args, **kwargs)
 
     def fold(self, f, initial=None):
@@ -762,11 +867,30 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # acc = initial
         # for v in self.iter():
         #     acc = f(acc, v)
-        # return iTuple(data=tuple(acc))
+        # return iTuple(tuple(acc))
         if initial is not None:
             return functools.reduce(f, self, initial)
         else:
             return functools.reduce(f, self)
+
+    def foldstar(self, f, initial=None):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.range(3).fold(lambda acc, v: v)
+        2
+        &gt;&gt;&gt; iTuple.range(3).fold(lambda acc, v: v, initial=0)
+        2
+        &gt;&gt;&gt; iTuple.range(3).fold(operator.add)
+        3
+        &#34;&#34;&#34;
+        # acc = initial
+        # for v in self.iter():
+        #     acc = f(acc, v)
+        # return iTuple(tuple(acc))
+        fstar = lambda acc, v: f(acc, *v)
+        if initial is not None:
+            return functools.reduce(fstar, self, initial)
+        else:
+            return functools.reduce(fstar, self)
 
     # -----
 
@@ -774,14 +898,16 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     # -----
 
+ituple = iTuple
+
 # ---------------------------------------------------------------
 
-@nTuple.decorate
+@nTuple.decorate()
 class _Example(typing.NamedTuple):
     &#34;&#34;&#34;
-    &gt;&gt;&gt; ex = Example(1, &#34;a&#34;)
+    &gt;&gt;&gt; ex = _Example(1, &#34;a&#34;)
     &gt;&gt;&gt; ex
-    Example(x=1, s=&#39;a&#39;, it=iTuple())
+    _Example(x=1, s=&#39;a&#39;, it=iTuple())
     &gt;&gt;&gt; ex.cls
     &lt;class &#39;xtuples.xtuples.nTuple&#39;&gt;
     &gt;&gt;&gt; ex.pipe(lambda nt: nt.x)
@@ -904,34 +1030,34 @@ __all__ = [
         &gt;&gt;&gt; fDict({0: 1}).map_keys(lambda v: v + 1)
         {1: 1}
         &#34;&#34;&#34;
-        return fDict(
+        return fDict(dict(
             (f(k, *args, **kwargs), v) for k, v in self.items()
-        )
+        ))
 
     def map_values(self, f, *args, **kwargs):
         &#34;&#34;&#34;
         &gt;&gt;&gt; fDict({0: 1}).map_values(lambda v: v + 1)
         {0: 2}
         &#34;&#34;&#34;
-        return fDict(
+        return fDict(dict(
             (k, f(v, *args, **kwargs)) for k, v in self.items()
-        )
+        ))
 
     def map_items(self, f, *args, **kwargs):
         &#34;&#34;&#34;
         &gt;&gt;&gt; fDict({0: 1}).map_items(lambda k, v: (v, k))
         {1: 0}
         &#34;&#34;&#34;
-        return fDict(
+        return fDict(dict(
             f(k, v, *args, **kwargs) for k, v in self.items()
-        )
+        ))
 
     def invert(self):
         &#34;&#34;&#34;
         &gt;&gt;&gt; fDict({0: 1}).invert()
         {1: 0}
         &#34;&#34;&#34;
-        return fDict((v, k) for k, v in self.items())</code></pre>
+        return fDict(dict((v, k) for k, v in self.items()))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -968,7 +1094,7 @@ __all__ = [
     &gt;&gt;&gt; fDict({0: 1}).invert()
     {1: 0}
     &#34;&#34;&#34;
-    return fDict((v, k) for k, v in self.items())</code></pre>
+    return fDict(dict((v, k) for k, v in self.items()))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.fDict.items_tuple"><code class="name flex">
@@ -1025,9 +1151,9 @@ iTuple(0)
     &gt;&gt;&gt; fDict({0: 1}).map_items(lambda k, v: (v, k))
     {1: 0}
     &#34;&#34;&#34;
-    return fDict(
+    return fDict(dict(
         f(k, v, *args, **kwargs) for k, v in self.items()
-    )</code></pre>
+    ))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.fDict.map_keys"><code class="name flex">
@@ -1046,9 +1172,9 @@ iTuple(0)
     &gt;&gt;&gt; fDict({0: 1}).map_keys(lambda v: v + 1)
     {1: 1}
     &#34;&#34;&#34;
-    return fDict(
+    return fDict(dict(
         (f(k, *args, **kwargs), v) for k, v in self.items()
-    )</code></pre>
+    ))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.fDict.map_values"><code class="name flex">
@@ -1067,9 +1193,9 @@ iTuple(0)
     &gt;&gt;&gt; fDict({0: 1}).map_values(lambda v: v + 1)
     {0: 2}
     &#34;&#34;&#34;
-    return fDict(
+    return fDict(dict(
         (k, f(v, *args, **kwargs)) for k, v in self.items()
-    )</code></pre>
+    ))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.fDict.partial"><code class="name flex">
@@ -1150,56 +1276,67 @@ iTuple(1)
 </dd>
 <dt id="xtuples.xtuples.iTuple"><code class="flex name class">
 <span>class <span class="ident">iTuple</span></span>
-<span>(</span><span>data=None)</span>
+<span>(</span><span>*args)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>iTuple(data=None)</p></div>
+<div class="desc"><p>Built-in immutable sequence.</p>
+<p>If no argument is given, the constructor returns an empty tuple.
+If iterable is specified the tuple is initialized from iterable's items.</p>
+<p>If the argument is a tuple, the return value is the same object.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclasses.dataclass(init = False, repr=True)
-class iTuple(collections.UserList, tuple): # type: ignore
-    __slots__ = ()
-
-    data: tuple # type: ignore
+<pre><code class="python">class iTuple(tuple):
 
     # -----
 
     @staticmethod
-    def __new__(cls, data = None):
-        # NOTE: we use cls not array
-        # so sub-classing *does* change identity
-        if isinstance(data, cls):
-            return data
-        return super().__new__(cls, data=data)
-    
-    def __init__(self, data = None):
-        # TODO: option for lazy init?
-        self.data = (
-            tuple() if data is None
-            else data if isinstance(data, tuple)
-            else tuple(data)
-        )
+    def __new__(cls, *args):
+        if len(args) == 1:
+            v = args[0]
+            if isinstance(v, cls):
+                return v
+            elif not isinstance(v, collections.abc.Iterable):
+                return ().__new__(cls, (v,))
+        return super().__new__(cls, *args)
 
     def __repr__(self):
-        s = super().__repr__()
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple()
+        iTuple()
+        &gt;&gt;&gt; iTuple(iTuple((3, 2,)))
+        iTuple(3, 2)
+        &#34;&#34;&#34;
+        s = tuple.__repr__(self)
         return &#34;{}({})&#34;.format(
             type(self).__name__,
             s[1:-2 if s[-2] == &#34;,&#34; else -1],
         )
 
-    def __hash__(self):
-        return hash(self.data)
+    def __str__(self):
+        return self.__repr__()
 
-    @classmethod
-    def decorate(meta, cls):
-        if cls.__name__ in REGISTRY:
-            print(&#34;NOTE, re-registering: {}&#34;.format(cls.__name__))
-        REGISTRY[cls.__name__] = cls
-        return cls
+    def __hash__(self):
+        return hash(self)
 
     # -----
+
+    @classmethod
+    def empty(cls):
+        return cls(tuple())
+
+    @classmethod
+    def one(cls, v):
+        return cls((v,))
+
+    @classmethod
+    def none(cls, n):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.none(3)
+        iTuple(None, None, None)
+        &#34;&#34;&#34;
+        return cls((None for _ in range(n)))
 
     @classmethod
     def range(cls, *args, **kwargs):
@@ -1232,6 +1369,18 @@ class iTuple(collections.UserList, tuple): # type: ignore
         iTuple((0, 1), (1, 2))
         &#34;&#34;&#34;
         return cls(d.items())
+    
+    @classmethod
+    def from_index(cls, s):
+        return cls(s.index)
+
+    @classmethod
+    def from_index_values(cls, s):
+        return cls(s.index.values)
+
+    @classmethod
+    def from_columns(cls, s):
+        return cls(s.columns)
 
     # -----
 
@@ -1260,21 +1409,30 @@ class iTuple(collections.UserList, tuple): # type: ignore
 
     # -----
 
-    def __len__(self):
-        return len(self.data)
+    # def __len__(self):
+    #     return len(self)
 
-    def __contains__(self, v):
-        return v in self.data
+    # def __contains__(self, v):
+    #     return v in self
 
     def len(self):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).len()
         3
         &#34;&#34;&#34;
-        return len(self.data)
+        return len(self)
+
+    def len_range(self):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.range(3).len()
+        3
+        &#34;&#34;&#34;
+        return type(self).range(self.len())
 
     def append(self, value, *values):
         &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple().append(1)
+        iTuple(1)
         &gt;&gt;&gt; iTuple.range(1).append(1)
         iTuple(0, 1)
         &gt;&gt;&gt; iTuple.range(1).append(1, 2)
@@ -1284,10 +1442,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(1).append(1, (2,))
         iTuple(0, 1, (2,))
         &#34;&#34;&#34;
-        return iTuple(data=(*self.data, value, *values))
+        return iTuple((*self, value, *values,))
 
     def prepend(self, value, *values):
         &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple().prepend(1)
+        iTuple(1)
         &gt;&gt;&gt; iTuple.range(1).prepend(1)
         iTuple(1, 0)
         &gt;&gt;&gt; iTuple.range(1).prepend(1, 2)
@@ -1297,7 +1457,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(1).prepend(1, (2,))
         iTuple(1, (2,), 0)
         &#34;&#34;&#34;
-        return iTuple(data=(value, *values, *self.data))
+        return iTuple((value, *values, *self,))
 
     def zip(self, *itrs, lazy = False, at = None):
         &#34;&#34;&#34;
@@ -1316,14 +1476,14 @@ class iTuple(collections.UserList, tuple): # type: ignore
             res = zip(*itrs[:at], self, *itrs[at:])
         else:
             assert False, at
-        return res if lazy else iTuple(data=res)
+        return res if lazy else iTuple(res)
 
     def flatten(self):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).map(lambda x: [x]).flatten()
         iTuple(0, 1, 2)
         &#34;&#34;&#34;
-        return iTuple(data=itertools.chain(*self))
+        return iTuple(itertools.chain(*self))
 
     def extend(self, value, *values):
         &#34;&#34;&#34;
@@ -1338,7 +1498,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(1).extend([1], [[2]], [2])
         iTuple(0, 1, [2], 2)
         &#34;&#34;&#34;
-        return iTuple(data=itertools.chain.from_iterable(
+        return iTuple(itertools.chain.from_iterable(
             (self, value, *values)
         ))
 
@@ -1355,9 +1515,15 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(1).pretend([1], [[2]], [2])
         iTuple(1, [2], 2, 0)
         &#34;&#34;&#34;
-        return iTuple(data=itertools.chain.from_iterable(
+        return iTuple(itertools.chain.from_iterable(
             (value, *values, self)
         ))
+
+    def any(self, f):
+        return any(self.map(f, lazy=True))
+    
+    def all(self, f):
+        return all(self.map(f, lazy=True))
 
     def filter_eq(self, v, f = None, eq = None, lazy = False):
         &#34;&#34;&#34;
@@ -1370,11 +1536,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
             res = filter(lambda x: f(x) == v, self)
         elif eq is not None:
             res = filter(lambda x: eq(x, v), self)
-        else:
+        elif f is not None and eq is not None:
             res = filter(lambda x: eq(f(x), v), self)
-        return res if lazy else type(self)(data=res)
+        else:
+            assert False
+        return res if lazy else type(self)(res)
 
-    def filter(self, f, eq = None, lazy = False):
+    def filter(self, f, eq = None, lazy = False, **kws):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).filter(lambda x: x &gt; 1)
         iTuple(2)
@@ -1383,39 +1551,72 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # for v in self.iter():
         #     if f(v):
         #         res.append(v)
-        return iTuple(data=(
-            v for v in self.iter() if f(v)
+        return type(self)((
+            v for v in self.iter() if f(v, **kws)
         ))
         # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
 
-    def map(self, f, *iterables, at = None, lazy = False):
+    def filterstar(self, f, eq = None, lazy = False, **kws):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.range(3).filter(lambda x: x &gt; 1)
+        iTuple(2)
+        &#34;&#34;&#34;
+        # res = []
+        # for v in self.iter():
+        #     if f(v):
+        #         res.append(v)
+        return type(self)((
+            v for v in self.iter() if f(*v, **kws)
+        ))
+
+    def is_none(self):
+        return self.filter(lambda v: v is None)
+
+    def not_none(self):
+        return self.filter(lambda v: v is not None)
+
+    def map(
+        self,
+        f,
+        *iterables,
+        at = None,
+        lazy = False
+    ) -&gt; iTuple:
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         &#34;&#34;&#34;
         # if lazy and at is None:
-        #     return map(f, self.data, *iterables)
+        #     return map(f, self, *iterables)
         if at is None:
-            return iTuple(data = map(f, self.data, *iterables))
+            return iTuple(map(f, self, *iterables))
         elif isinstance(at, int):
-            return iTuple(data = map(
-                f, *iterables[:at], self.data, *iterables[at:]
+            return iTuple(map(
+                f, *iterables[:at], self, *iterables[at:]
+            ))
+        elif isinstance(at, str):
+            return iTuple(map(
+                f, *iterables, **{at: self}
             ))
         else:
             assert False, at
 
     # args, kwargs
     def mapstar(self, f):
-        return iTuple(data=itertools.starmap(f, self.data))
+        return iTuple(itertools.starmap(f, self))
 
     def get(self, i):
-        return self.data[i]
+        if isinstance(i, slice):
+            return type(self)(self[i])
+        return self[i]
 
     def __getitem__(self, i):
-        return self.data[i]
+        if isinstance(i, slice):
+            return type(self)(tuple_getitem(self, i))
+        return tuple_getitem(self, i)
 
-    def __iter__(self):
-        return iter(self.data)
+    # def __iter__(self):
+    #     return iter(self)
 
     def iter(self):
         &#34;&#34;&#34;
@@ -1424,7 +1625,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         1
         2
         &#34;&#34;&#34;
-        return iter(self.data)
+        return iter(self)
 
     def enumerate(self):
         &#34;&#34;&#34;
@@ -1434,7 +1635,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # TODO: allow lazy
         return iTuple(enumerate(self))
 
-    def groupby(
+    def chunkby(
         self, 
         f, 
         lazy = False, 
@@ -1442,12 +1643,12 @@ class iTuple(collections.UserList, tuple): # type: ignore
         pipe= None,
     ):
         &#34;&#34;&#34;
-        &gt;&gt;&gt; iTuple.range(3).groupby(lambda x: x &lt; 2)
-        iTuple((0, 1), (2,))
-        &gt;&gt;&gt; iTuple.range(3).groupby(
+        &gt;&gt;&gt; iTuple.range(3).chunkby(lambda x: x &lt; 2)
+        iTuple(iTuple(0, 1), iTuple(2))
+        &gt;&gt;&gt; iTuple.range(3).chunkby(
         ...    lambda x: x &lt; 2, keys=True, pipe=fDict
         ... )
-        {True: (0, 1), False: (2,)}
+        {True: iTuple(0, 1), False: iTuple(2)}
         &#34;&#34;&#34;
         # TODO: lazy no keys
         res = itertools.groupby(self, key=f)
@@ -1456,9 +1657,36 @@ class iTuple(collections.UserList, tuple): # type: ignore
         if pipe is None:
             pipe = iTuple
         if keys:
-            return pipe((k, tuple(g),) for k, g in res)
+            return pipe((k, iTuple(g),) for k, g in res)
         else:
-            return pipe(tuple(g) for k, g in res)
+            return pipe(iTuple(g) for k, g in res)
+
+    def groupby(
+        self, f, lazy = False, keys = False, pipe = None
+    ):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.range(3).groupby(lambda x: x &lt; 2)
+        iTuple(iTuple(2), iTuple(0, 1))
+        &gt;&gt;&gt; iTuple.range(3).groupby(
+        ...    lambda x: x &lt; 2, keys=True, pipe=fDict
+        ... )
+        {False: iTuple(2), True: iTuple(0, 1)}
+        &#34;&#34;&#34;
+        res = (
+            self.chunkby(f, keys=True)
+            .sort(f = lambda kg: kg[0])
+            .chunkby(lambda kg: kg[0], keys = True)
+            .map(lambda k_kgs: (
+                k_kgs[0],
+                k_kgs[1].mapstar(lambda k, g: g).flatten(),
+            ))
+        )
+        if pipe is None:
+            pipe = iTuple
+        if keys:
+            return pipe((k, iTuple(g),) for k, g in res)
+        else:
+            return pipe(iTuple(g) for k, g in res)
 
     def first(self):
         &#34;&#34;&#34;
@@ -1474,7 +1702,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &#34;&#34;&#34;
         return self[-1]
 
-    def first_where(self, f):
+    def pop_first(self):
+        return self[1:]
+
+    def pop_last(self):
+        return self[:-1]
+
+    def first_where(self, f, default = None):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).first_where(lambda v: v &gt; 0)
         1
@@ -1482,9 +1716,9 @@ class iTuple(collections.UserList, tuple): # type: ignore
         for v in self:
             if f(v):
                 return v
-        return None
+        return default
 
-    def last_where(self, f):
+    def last_where(self, f, default = None):
         &#34;&#34;&#34;
         &gt;&gt;&gt; iTuple.range(3).last_where(lambda v: v &lt; 2)
         1
@@ -1492,7 +1726,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         for v in reversed(self):
             if f(v):
                 return v
-        return None
+        return default
 
     def take(self, n):
         &#34;&#34;&#34;
@@ -1515,7 +1749,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &#34;&#34;&#34;
         if lazy:
             return reversed(self)
-        return type(self)(data=reversed(self))
+        return type(self)(reversed(self))
 
     def take_while(self, f, n = None, lazy = False):
         &#34;&#34;&#34;
@@ -1531,7 +1765,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
                 else:
                     return
         res = iter()
-        return res if lazy else type(self)(data=res)
+        return res if lazy else type(self)(res)
 
     def tail_while(self, f, n = None):
         &#34;&#34;&#34;
@@ -1566,7 +1800,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
                 else:
                     return
         res = iter()
-        return res if lazy else type(self)(data=res)
+        return res if lazy else type(self)(res)
 
     def tail_after(self, f, n = None):
         &#34;&#34;&#34;
@@ -1599,13 +1833,13 @@ class iTuple(collections.UserList, tuple): # type: ignore
         iTuple(1, 3, 2, 4)
         &#34;&#34;&#34;
         def iter():
-            seen = set()
+            seen: typing.Set = set()
             seen_add = seen.add
             seen_contains = seen.__contains__
             for v in itertools.filterfalse(seen_contains, self):
                 seen_add(v)
                 yield v
-        return type(self)(data=iter())
+        return type(self)(iter())
     
     def sort(self, f = lambda v: v):
         &#34;&#34;&#34;
@@ -1614,7 +1848,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &gt;&gt;&gt; iTuple.range(3).sort()
         iTuple(0, 1, 2)
         &#34;&#34;&#34;
-        return type(self)(data=sorted(self, key = f))
+        return type(self)(sorted(self, key = f))
 
     def accumulate(self, f, initial = None, lazy = False):
         &#34;&#34;&#34;
@@ -1627,7 +1861,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         &#34;&#34;&#34;
         if lazy:
             return itertools.accumulate(self, func=f, initial=initial)
-        return iTuple(data=itertools.accumulate(
+        return iTuple(itertools.accumulate(
             self, func=f, initial=initial
         ))
 
@@ -1643,7 +1877,7 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # for x in self.iter():
         #     acc = f(acc, x)
         #     res.append(acc)
-        # return iTuple(data=tuple(res))
+        # return iTuple(tuple(res))
         return self.accumulate(*args, **kwargs)
 
     def fold(self, f, initial=None):
@@ -1658,35 +1892,39 @@ class iTuple(collections.UserList, tuple): # type: ignore
         # acc = initial
         # for v in self.iter():
         #     acc = f(acc, v)
-        # return iTuple(data=tuple(acc))
+        # return iTuple(tuple(acc))
         if initial is not None:
             return functools.reduce(f, self, initial)
         else:
-            return functools.reduce(f, self)</code></pre>
+            return functools.reduce(f, self)
+
+    def foldstar(self, f, initial=None):
+        &#34;&#34;&#34;
+        &gt;&gt;&gt; iTuple.range(3).fold(lambda acc, v: v)
+        2
+        &gt;&gt;&gt; iTuple.range(3).fold(lambda acc, v: v, initial=0)
+        2
+        &gt;&gt;&gt; iTuple.range(3).fold(operator.add)
+        3
+        &#34;&#34;&#34;
+        # acc = initial
+        # for v in self.iter():
+        #     acc = f(acc, v)
+        # return iTuple(tuple(acc))
+        fstar = lambda acc, v: f(acc, *v)
+        if initial is not None:
+            return functools.reduce(fstar, self, initial)
+        else:
+            return functools.reduce(fstar, self)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>collections.UserList</li>
-<li>collections.abc.MutableSequence</li>
-<li>collections.abc.Sequence</li>
-<li>collections.abc.Reversible</li>
-<li>collections.abc.Collection</li>
-<li>collections.abc.Sized</li>
-<li>collections.abc.Iterable</li>
-<li>collections.abc.Container</li>
 <li>builtins.tuple</li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="xtuples.xtuples.iTuple.data"><code class="name">var <span class="ident">data</span> : tuple</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 <h3>Static methods</h3>
 <dl>
-<dt id="xtuples.xtuples.iTuple.decorate"><code class="name flex">
-<span>def <span class="ident">decorate</span></span>(<span>cls)</span>
+<dt id="xtuples.xtuples.iTuple.empty"><code class="name flex">
+<span>def <span class="ident">empty</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1695,11 +1933,50 @@ class iTuple(collections.UserList, tuple): # type: ignore
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def decorate(meta, cls):
-    if cls.__name__ in REGISTRY:
-        print(&#34;NOTE, re-registering: {}&#34;.format(cls.__name__))
-    REGISTRY[cls.__name__] = cls
-    return cls</code></pre>
+def empty(cls):
+    return cls(tuple())</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.from_columns"><code class="name flex">
+<span>def <span class="ident">from_columns</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_columns(cls, s):
+    return cls(s.columns)</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.from_index"><code class="name flex">
+<span>def <span class="ident">from_index</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_index(cls, s):
+    return cls(s.index)</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.from_index_values"><code class="name flex">
+<span>def <span class="ident">from_index_values</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_index_values(cls, s):
+    return cls(s.index.values)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.from_items"><code class="name flex">
@@ -1762,6 +2039,40 @@ def from_values(cls, d):
     return cls(d.values())</code></pre>
 </details>
 </dd>
+<dt id="xtuples.xtuples.iTuple.none"><code class="name flex">
+<span>def <span class="ident">none</span></span>(<span>n)</span>
+</code></dt>
+<dd>
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.none(3)
+iTuple(None, None, None)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def none(cls, n):
+    &#34;&#34;&#34;
+    &gt;&gt;&gt; iTuple.none(3)
+    iTuple(None, None, None)
+    &#34;&#34;&#34;
+    return cls((None for _ in range(n)))</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.one"><code class="name flex">
+<span>def <span class="ident">one</span></span>(<span>v)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def one(cls, v):
+    return cls((v,))</code></pre>
+</details>
+</dd>
 <dt id="xtuples.xtuples.iTuple.range"><code class="name flex">
 <span>def <span class="ident">range</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
@@ -1811,16 +2122,44 @@ iTuple(0, 1, 3)
     &#34;&#34;&#34;
     if lazy:
         return itertools.accumulate(self, func=f, initial=initial)
-    return iTuple(data=itertools.accumulate(
+    return iTuple(itertools.accumulate(
         self, func=f, initial=initial
     ))</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.all"><code class="name flex">
+<span>def <span class="ident">all</span></span>(<span>self, f)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def all(self, f):
+    return all(self.map(f, lazy=True))</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.any"><code class="name flex">
+<span>def <span class="ident">any</span></span>(<span>self, f)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def any(self, f):
+    return any(self.map(f, lazy=True))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.append"><code class="name flex">
 <span>def <span class="ident">append</span></span>(<span>self, value, *values)</span>
 </code></dt>
 <dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(1).append(1)
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple().append(1)
+iTuple(1)
+&gt;&gt;&gt; iTuple.range(1).append(1)
 iTuple(0, 1)
 &gt;&gt;&gt; iTuple.range(1).append(1, 2)
 iTuple(0, 1, 2)
@@ -1835,6 +2174,8 @@ iTuple(0, 1, (2,))
 </summary>
 <pre><code class="python">def append(self, value, *values):
     &#34;&#34;&#34;
+    &gt;&gt;&gt; iTuple().append(1)
+    iTuple(1)
     &gt;&gt;&gt; iTuple.range(1).append(1)
     iTuple(0, 1)
     &gt;&gt;&gt; iTuple.range(1).append(1, 2)
@@ -1844,7 +2185,49 @@ iTuple(0, 1, (2,))
     &gt;&gt;&gt; iTuple.range(1).append(1, (2,))
     iTuple(0, 1, (2,))
     &#34;&#34;&#34;
-    return iTuple(data=(*self.data, value, *values))</code></pre>
+    return iTuple((*self, value, *values,))</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.chunkby"><code class="name flex">
+<span>def <span class="ident">chunkby</span></span>(<span>self, f, lazy=False, keys=False, pipe=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).chunkby(lambda x: x &lt; 2)
+iTuple(iTuple(0, 1), iTuple(2))
+&gt;&gt;&gt; iTuple.range(3).chunkby(
+...    lambda x: x &lt; 2, keys=True, pipe=fDict
+... )
+{True: iTuple(0, 1), False: iTuple(2)}
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def chunkby(
+    self, 
+    f, 
+    lazy = False, 
+    keys = False,
+    pipe= None,
+):
+    &#34;&#34;&#34;
+    &gt;&gt;&gt; iTuple.range(3).chunkby(lambda x: x &lt; 2)
+    iTuple(iTuple(0, 1), iTuple(2))
+    &gt;&gt;&gt; iTuple.range(3).chunkby(
+    ...    lambda x: x &lt; 2, keys=True, pipe=fDict
+    ... )
+    {True: iTuple(0, 1), False: iTuple(2)}
+    &#34;&#34;&#34;
+    # TODO: lazy no keys
+    res = itertools.groupby(self, key=f)
+    if lazy and keys and pipe is None:
+        return res
+    if pipe is None:
+        pipe = iTuple
+    if keys:
+        return pipe((k, iTuple(g),) for k, g in res)
+    else:
+        return pipe(iTuple(g) for k, g in res)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.enumerate"><code class="name flex">
@@ -1899,13 +2282,13 @@ iTuple(0, 1, [2], 2)
     &gt;&gt;&gt; iTuple.range(1).extend([1], [[2]], [2])
     iTuple(0, 1, [2], 2)
     &#34;&#34;&#34;
-    return iTuple(data=itertools.chain.from_iterable(
+    return iTuple(itertools.chain.from_iterable(
         (self, value, *values)
     ))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.filter"><code class="name flex">
-<span>def <span class="ident">filter</span></span>(<span>self, f, eq=None, lazy=False)</span>
+<span>def <span class="ident">filter</span></span>(<span>self, f, eq=None, lazy=False, **kws)</span>
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).filter(lambda x: x &gt; 1)
@@ -1915,7 +2298,7 @@ iTuple(2)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def filter(self, f, eq = None, lazy = False):
+<pre><code class="python">def filter(self, f, eq = None, lazy = False, **kws):
     &#34;&#34;&#34;
     &gt;&gt;&gt; iTuple.range(3).filter(lambda x: x &gt; 1)
     iTuple(2)
@@ -1924,8 +2307,8 @@ iTuple(2)
     # for v in self.iter():
     #     if f(v):
     #         res.append(v)
-    return iTuple(data=(
-        v for v in self.iter() if f(v)
+    return type(self)((
+        v for v in self.iter() if f(v, **kws)
     ))</code></pre>
 </details>
 </dd>
@@ -1951,9 +2334,36 @@ iTuple(1)
         res = filter(lambda x: f(x) == v, self)
     elif eq is not None:
         res = filter(lambda x: eq(x, v), self)
-    else:
+    elif f is not None and eq is not None:
         res = filter(lambda x: eq(f(x), v), self)
-    return res if lazy else type(self)(data=res)</code></pre>
+    else:
+        assert False
+    return res if lazy else type(self)(res)</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.filterstar"><code class="name flex">
+<span>def <span class="ident">filterstar</span></span>(<span>self, f, eq=None, lazy=False, **kws)</span>
+</code></dt>
+<dd>
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).filter(lambda x: x &gt; 1)
+iTuple(2)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filterstar(self, f, eq = None, lazy = False, **kws):
+    &#34;&#34;&#34;
+    &gt;&gt;&gt; iTuple.range(3).filter(lambda x: x &gt; 1)
+    iTuple(2)
+    &#34;&#34;&#34;
+    # res = []
+    # for v in self.iter():
+    #     if f(v):
+    #         res.append(v)
+    return type(self)((
+        v for v in self.iter() if f(*v, **kws)
+    ))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.first"><code class="name flex">
@@ -1976,7 +2386,7 @@ iTuple(1)
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.first_where"><code class="name flex">
-<span>def <span class="ident">first_where</span></span>(<span>self, f)</span>
+<span>def <span class="ident">first_where</span></span>(<span>self, f, default=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).first_where(lambda v: v &gt; 0)
@@ -1986,7 +2396,7 @@ iTuple(1)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def first_where(self, f):
+<pre><code class="python">def first_where(self, f, default = None):
     &#34;&#34;&#34;
     &gt;&gt;&gt; iTuple.range(3).first_where(lambda v: v &gt; 0)
     1
@@ -1994,7 +2404,7 @@ iTuple(1)
     for v in self:
         if f(v):
             return v
-    return None</code></pre>
+    return default</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.flatten"><code class="name flex">
@@ -2013,7 +2423,7 @@ iTuple(0, 1, 2)
     &gt;&gt;&gt; iTuple.range(3).map(lambda x: [x]).flatten()
     iTuple(0, 1, 2)
     &#34;&#34;&#34;
-    return iTuple(data=itertools.chain(*self))</code></pre>
+    return iTuple(itertools.chain(*self))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.fold"><code class="name flex">
@@ -2043,7 +2453,7 @@ iTuple(0, 1, 2)
     # acc = initial
     # for v in self.iter():
     #     acc = f(acc, v)
-    # return iTuple(data=tuple(acc))
+    # return iTuple(tuple(acc))
     if initial is not None:
         return functools.reduce(f, self, initial)
     else:
@@ -2075,8 +2485,43 @@ iTuple(0, 1, 3)
     # for x in self.iter():
     #     acc = f(acc, x)
     #     res.append(acc)
-    # return iTuple(data=tuple(res))
+    # return iTuple(tuple(res))
     return self.accumulate(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.foldstar"><code class="name flex">
+<span>def <span class="ident">foldstar</span></span>(<span>self, f, initial=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).fold(lambda acc, v: v)
+2
+&gt;&gt;&gt; iTuple.range(3).fold(lambda acc, v: v, initial=0)
+2
+&gt;&gt;&gt; iTuple.range(3).fold(operator.add)
+3
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def foldstar(self, f, initial=None):
+    &#34;&#34;&#34;
+    &gt;&gt;&gt; iTuple.range(3).fold(lambda acc, v: v)
+    2
+    &gt;&gt;&gt; iTuple.range(3).fold(lambda acc, v: v, initial=0)
+    2
+    &gt;&gt;&gt; iTuple.range(3).fold(operator.add)
+    3
+    &#34;&#34;&#34;
+    # acc = initial
+    # for v in self.iter():
+    #     acc = f(acc, v)
+    # return iTuple(tuple(acc))
+    fstar = lambda acc, v: f(acc, *v)
+    if initial is not None:
+        return functools.reduce(fstar, self, initial)
+    else:
+        return functools.reduce(fstar, self)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.get"><code class="name flex">
@@ -2089,7 +2534,9 @@ iTuple(0, 1, 3)
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get(self, i):
-    return self.data[i]</code></pre>
+    if isinstance(i, slice):
+        return type(self)(self[i])
+    return self[i]</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.groupby"><code class="name flex">
@@ -2097,41 +2544,55 @@ iTuple(0, 1, 3)
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).groupby(lambda x: x &lt; 2)
-iTuple((0, 1), (2,))
+iTuple(iTuple(2), iTuple(0, 1))
 &gt;&gt;&gt; iTuple.range(3).groupby(
 ...    lambda x: x &lt; 2, keys=True, pipe=fDict
 ... )
-{True: (0, 1), False: (2,)}
+{False: iTuple(2), True: iTuple(0, 1)}
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def groupby(
-    self, 
-    f, 
-    lazy = False, 
-    keys = False,
-    pipe= None,
+    self, f, lazy = False, keys = False, pipe = None
 ):
     &#34;&#34;&#34;
     &gt;&gt;&gt; iTuple.range(3).groupby(lambda x: x &lt; 2)
-    iTuple((0, 1), (2,))
+    iTuple(iTuple(2), iTuple(0, 1))
     &gt;&gt;&gt; iTuple.range(3).groupby(
     ...    lambda x: x &lt; 2, keys=True, pipe=fDict
     ... )
-    {True: (0, 1), False: (2,)}
+    {False: iTuple(2), True: iTuple(0, 1)}
     &#34;&#34;&#34;
-    # TODO: lazy no keys
-    res = itertools.groupby(self, key=f)
-    if lazy and keys and pipe is None:
-        return res
+    res = (
+        self.chunkby(f, keys=True)
+        .sort(f = lambda kg: kg[0])
+        .chunkby(lambda kg: kg[0], keys = True)
+        .map(lambda k_kgs: (
+            k_kgs[0],
+            k_kgs[1].mapstar(lambda k, g: g).flatten(),
+        ))
+    )
     if pipe is None:
         pipe = iTuple
     if keys:
-        return pipe((k, tuple(g),) for k, g in res)
+        return pipe((k, iTuple(g),) for k, g in res)
     else:
-        return pipe(tuple(g) for k, g in res)</code></pre>
+        return pipe(iTuple(g) for k, g in res)</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.is_none"><code class="name flex">
+<span>def <span class="ident">is_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_none(self):
+    return self.filter(lambda v: v is None)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.islice"><code class="name flex">
@@ -2173,7 +2634,7 @@ iTuple(1, 2)
     1
     2
     &#34;&#34;&#34;
-    return iter(self.data)</code></pre>
+    return iter(self)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.last"><code class="name flex">
@@ -2196,7 +2657,7 @@ iTuple(1, 2)
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.last_where"><code class="name flex">
-<span>def <span class="ident">last_where</span></span>(<span>self, f)</span>
+<span>def <span class="ident">last_where</span></span>(<span>self, f, default=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).last_where(lambda v: v &lt; 2)
@@ -2206,7 +2667,7 @@ iTuple(1, 2)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def last_where(self, f):
+<pre><code class="python">def last_where(self, f, default = None):
     &#34;&#34;&#34;
     &gt;&gt;&gt; iTuple.range(3).last_where(lambda v: v &lt; 2)
     1
@@ -2214,7 +2675,7 @@ iTuple(1, 2)
     for v in reversed(self):
         if f(v):
             return v
-    return None</code></pre>
+    return default</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.len"><code class="name flex">
@@ -2233,11 +2694,30 @@ iTuple(1, 2)
     &gt;&gt;&gt; iTuple.range(3).len()
     3
     &#34;&#34;&#34;
-    return len(self.data)</code></pre>
+    return len(self)</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.len_range"><code class="name flex">
+<span>def <span class="ident">len_range</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).len()
+3
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def len_range(self):
+    &#34;&#34;&#34;
+    &gt;&gt;&gt; iTuple.range(3).len()
+    3
+    &#34;&#34;&#34;
+    return type(self).range(self.len())</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.map"><code class="name flex">
-<span>def <span class="ident">map</span></span>(<span>self, f, *iterables, at=None, lazy=False)</span>
+<span>def <span class="ident">map</span></span>(<span>self, f, *iterables, at=None, lazy=False) ‑> <a title="xtuples.xtuples.iTuple" href="#xtuples.xtuples.iTuple">iTuple</a></span>
 </code></dt>
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(3).map(lambda x: x * 2)
@@ -2247,18 +2727,28 @@ iTuple(0, 2, 4)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def map(self, f, *iterables, at = None, lazy = False):
+<pre><code class="python">def map(
+    self,
+    f,
+    *iterables,
+    at = None,
+    lazy = False
+) -&gt; iTuple:
     &#34;&#34;&#34;
     &gt;&gt;&gt; iTuple.range(3).map(lambda x: x * 2)
     iTuple(0, 2, 4)
     &#34;&#34;&#34;
     # if lazy and at is None:
-    #     return map(f, self.data, *iterables)
+    #     return map(f, self, *iterables)
     if at is None:
-        return iTuple(data = map(f, self.data, *iterables))
+        return iTuple(map(f, self, *iterables))
     elif isinstance(at, int):
-        return iTuple(data = map(
-            f, *iterables[:at], self.data, *iterables[at:]
+        return iTuple(map(
+            f, *iterables[:at], self, *iterables[at:]
+        ))
+    elif isinstance(at, str):
+        return iTuple(map(
+            f, *iterables, **{at: self}
         ))
     else:
         assert False, at</code></pre>
@@ -2274,7 +2764,20 @@ iTuple(0, 2, 4)
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def mapstar(self, f):
-    return iTuple(data=itertools.starmap(f, self.data))</code></pre>
+    return iTuple(itertools.starmap(f, self))</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.not_none"><code class="name flex">
+<span>def <span class="ident">not_none</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def not_none(self):
+    return self.filter(lambda v: v is not None)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.partial"><code class="name flex">
@@ -2333,11 +2836,39 @@ iTuple(0, 2)
     return pipe(f, self, *args, at = at, **kwargs)</code></pre>
 </details>
 </dd>
+<dt id="xtuples.xtuples.iTuple.pop_first"><code class="name flex">
+<span>def <span class="ident">pop_first</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pop_first(self):
+    return self[1:]</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.iTuple.pop_last"><code class="name flex">
+<span>def <span class="ident">pop_last</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pop_last(self):
+    return self[:-1]</code></pre>
+</details>
+</dd>
 <dt id="xtuples.xtuples.iTuple.prepend"><code class="name flex">
 <span>def <span class="ident">prepend</span></span>(<span>self, value, *values)</span>
 </code></dt>
 <dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple.range(1).prepend(1)
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; iTuple().prepend(1)
+iTuple(1)
+&gt;&gt;&gt; iTuple.range(1).prepend(1)
 iTuple(1, 0)
 &gt;&gt;&gt; iTuple.range(1).prepend(1, 2)
 iTuple(1, 2, 0)
@@ -2352,6 +2883,8 @@ iTuple(1, (2,), 0)
 </summary>
 <pre><code class="python">def prepend(self, value, *values):
     &#34;&#34;&#34;
+    &gt;&gt;&gt; iTuple().prepend(1)
+    iTuple(1)
     &gt;&gt;&gt; iTuple.range(1).prepend(1)
     iTuple(1, 0)
     &gt;&gt;&gt; iTuple.range(1).prepend(1, 2)
@@ -2361,7 +2894,7 @@ iTuple(1, (2,), 0)
     &gt;&gt;&gt; iTuple.range(1).prepend(1, (2,))
     iTuple(1, (2,), 0)
     &#34;&#34;&#34;
-    return iTuple(data=(value, *values, *self.data))</code></pre>
+    return iTuple((value, *values, *self,))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.pretend"><code class="name flex">
@@ -2396,7 +2929,7 @@ iTuple(1, [2], 2, 0)
     &gt;&gt;&gt; iTuple.range(1).pretend([1], [[2]], [2])
     iTuple(1, [2], 2, 0)
     &#34;&#34;&#34;
-    return iTuple(data=itertools.chain.from_iterable(
+    return iTuple(itertools.chain.from_iterable(
         (value, *values, self)
     ))</code></pre>
 </details>
@@ -2419,7 +2952,7 @@ iTuple(2, 1, 0)
     &#34;&#34;&#34;
     if lazy:
         return reversed(self)
-    return type(self)(data=reversed(self))</code></pre>
+    return type(self)(reversed(self))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.sort"><code class="name flex">
@@ -2442,7 +2975,7 @@ iTuple(0, 1, 2)
     &gt;&gt;&gt; iTuple.range(3).sort()
     iTuple(0, 1, 2)
     &#34;&#34;&#34;
-    return type(self)(data=sorted(self, key = f))</code></pre>
+    return type(self)(sorted(self, key = f))</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.tail"><code class="name flex">
@@ -2571,7 +3104,7 @@ iTuple(1)
             else:
                 return
     res = iter()
-    return res if lazy else type(self)(data=res)</code></pre>
+    return res if lazy else type(self)(res)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.take_while"><code class="name flex">
@@ -2599,7 +3132,7 @@ iTuple(0)
             else:
                 return
     res = iter()
-    return res if lazy else type(self)(data=res)</code></pre>
+    return res if lazy else type(self)(res)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.unique"><code class="name flex">
@@ -2619,13 +3152,13 @@ iTuple(1, 3, 2, 4)
     iTuple(1, 3, 2, 4)
     &#34;&#34;&#34;
     def iter():
-        seen = set()
+        seen: typing.Set = set()
         seen_add = seen.add
         seen_contains = seen.__contains__
         for v in itertools.filterfalse(seen_contains, self):
             seen_add(v)
             yield v
-    return type(self)(data=iter())</code></pre>
+    return type(self)(iter())</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.iTuple.zip"><code class="name flex">
@@ -2660,7 +3193,7 @@ iTuple((0, 1), (1, 2), (2, 3))
         res = zip(*itrs[:at], self, *itrs[at:])
     else:
         assert False, at
-    return res if lazy else iTuple(data=res)</code></pre>
+    return res if lazy else iTuple(res)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2686,16 +3219,16 @@ inheritance.</p></div>
     @staticmethod
     def pipe(obj, f, *args, at = None, **kwargs):
         &#34;&#34;&#34;
-        &gt;&gt;&gt; example = Example(1, &#34;a&#34;)
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, None)
-        Example(x=1, s=&#39;a&#39;, it=iTuple())
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 1)
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = &#39;b&#39;)
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, a=None, at = &#39;b&#39;)
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, b=None, at = &#39;a&#39;)
-        Example(x=1, s=&#39;a&#39;, it=iTuple())
-        &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 0)
-        Example(x=1, s=&#39;a&#39;, it=iTuple())
+        &gt;&gt;&gt; _Example = _Example(1, &#34;a&#34;)
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None)
+        _Example(x=1, s=&#39;a&#39;, it=iTuple())
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 1)
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = &#39;b&#39;)
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, a=None, at = &#39;b&#39;)
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, b=None, at = &#39;a&#39;)
+        _Example(x=1, s=&#39;a&#39;, it=iTuple())
+        &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 0)
+        _Example(x=1, s=&#39;a&#39;, it=iTuple())
         &#34;&#34;&#34;
         return pipe(f, obj, *args, at = at, **kwargs)
 
@@ -2708,9 +3241,9 @@ inheritance.</p></div>
         &#34;&#34;&#34;
         &gt;&gt;&gt; nTuple.is_subclass(tuple)
         False
-        &gt;&gt;&gt; nTuple.is_subclass(Example(1, &#34;a&#34;))
+        &gt;&gt;&gt; nTuple.is_subclass(_Example(1, &#34;a&#34;))
         False
-        &gt;&gt;&gt; nTuple.is_subclass(Example)
+        &gt;&gt;&gt; nTuple.is_subclass(_Example)
         True
         &#34;&#34;&#34;
         try:
@@ -2729,9 +3262,9 @@ inheritance.</p></div>
         &#34;&#34;&#34;
         &gt;&gt;&gt; nTuple.is_instance(tuple)
         False
-        &gt;&gt;&gt; nTuple.is_instance(Example)
+        &gt;&gt;&gt; nTuple.is_instance(_Example)
         False
-        &gt;&gt;&gt; nTuple.is_instance(Example(1, &#34;a&#34;))
+        &gt;&gt;&gt; nTuple.is_instance(_Example(1, &#34;a&#34;))
         True
         &#34;&#34;&#34;
         return (
@@ -2744,36 +3277,36 @@ inheritance.</p></div>
     @staticmethod
     def annotations(obj):
         &#34;&#34;&#34;
-        &gt;&gt;&gt; ex = Example(1, &#34;a&#34;)
+        &gt;&gt;&gt; ex = _Example(1, &#34;a&#34;)
         &gt;&gt;&gt; ex.pipe(ex.cls.annotations)
-        {&#39;x&#39;: &lt;class &#39;int&#39;&gt;, &#39;s&#39;: &lt;class &#39;str&#39;&gt;, &#39;it&#39;: &lt;class &#39;xtuples.xtuples.iTuple&#39;&gt;}
+        {&#39;x&#39;: ForwardRef(&#39;int&#39;), &#39;s&#39;: ForwardRef(&#39;str&#39;), &#39;it&#39;: ForwardRef(&#39;iTuple&#39;)}
         &#34;&#34;&#34;
         return fDict(obj.__annotations__)
 
     @classmethod
     def as_dict(cls, obj):
         &#34;&#34;&#34;
-        &gt;&gt;&gt; ex = Example(1, &#34;a&#34;)
+        &gt;&gt;&gt; ex = _Example(1, &#34;a&#34;)
         &gt;&gt;&gt; ex.pipe(ex.cls.as_dict)
         {&#39;x&#39;: 1, &#39;s&#39;: &#39;a&#39;, &#39;it&#39;: iTuple()}
         &#34;&#34;&#34;
         return fDict(obj._asdict())
 
     @classmethod
-    def decorate(meta, cls):
-        if cls.__name__ in REGISTRY:
-            print(&#34;NOTE, re-registering: {}&#34;.format(cls.__name__))
-        cls.pipe = meta.pipe
-        cls.partial = meta.partial
-        cls.cls = meta
-        REGISTRY[cls.__name__] = cls
-        return cls
+    def decorate(meta, **methods):
+        def decorator(cls):
+            cls.pipe = meta.pipe
+            cls.partial = meta.partial
+            cls.cls = meta
+            for k, f in methods.items():
+                setattr(cls, k, f)
+            return cls
+        return decorator
 
     @classmethod
-    def replace(cls, *ks):
-        def f(obj, *vs):
-            return obj._replace(**{k: v for k, v in zip(ks, vs)})
-        return f</code></pre>
+    def enum(meta, cls):
+        cls = meta.decorate()(cls)
+        return functools.lru_cache(maxsize=1)(cls)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2785,9 +3318,9 @@ inheritance.</p></div>
 <span>def <span class="ident">annotations</span></span>(<span>obj)</span>
 </code></dt>
 <dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; ex = Example(1, &quot;a&quot;)
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; ex = _Example(1, &quot;a&quot;)
 &gt;&gt;&gt; ex.pipe(ex.cls.annotations)
-{'x': &lt;class 'int'&gt;, 's': &lt;class 'str'&gt;, 'it': &lt;class 'xtuples.xtuples.iTuple'&gt;}
+{'x': ForwardRef('int'), 's': ForwardRef('str'), 'it': ForwardRef('iTuple')}
 </code></pre></div>
 <details class="source">
 <summary>
@@ -2796,9 +3329,9 @@ inheritance.</p></div>
 <pre><code class="python">@staticmethod
 def annotations(obj):
     &#34;&#34;&#34;
-    &gt;&gt;&gt; ex = Example(1, &#34;a&#34;)
+    &gt;&gt;&gt; ex = _Example(1, &#34;a&#34;)
     &gt;&gt;&gt; ex.pipe(ex.cls.annotations)
-    {&#39;x&#39;: &lt;class &#39;int&#39;&gt;, &#39;s&#39;: &lt;class &#39;str&#39;&gt;, &#39;it&#39;: &lt;class &#39;xtuples.xtuples.iTuple&#39;&gt;}
+    {&#39;x&#39;: ForwardRef(&#39;int&#39;), &#39;s&#39;: ForwardRef(&#39;str&#39;), &#39;it&#39;: ForwardRef(&#39;iTuple&#39;)}
     &#34;&#34;&#34;
     return fDict(obj.__annotations__)</code></pre>
 </details>
@@ -2807,7 +3340,7 @@ def annotations(obj):
 <span>def <span class="ident">as_dict</span></span>(<span>obj)</span>
 </code></dt>
 <dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; ex = Example(1, &quot;a&quot;)
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; ex = _Example(1, &quot;a&quot;)
 &gt;&gt;&gt; ex.pipe(ex.cls.as_dict)
 {'x': 1, 's': 'a', 'it': iTuple()}
 </code></pre></div>
@@ -2818,7 +3351,7 @@ def annotations(obj):
 <pre><code class="python">@classmethod
 def as_dict(cls, obj):
     &#34;&#34;&#34;
-    &gt;&gt;&gt; ex = Example(1, &#34;a&#34;)
+    &gt;&gt;&gt; ex = _Example(1, &#34;a&#34;)
     &gt;&gt;&gt; ex.pipe(ex.cls.as_dict)
     {&#39;x&#39;: 1, &#39;s&#39;: &#39;a&#39;, &#39;it&#39;: iTuple()}
     &#34;&#34;&#34;
@@ -2826,7 +3359,7 @@ def as_dict(cls, obj):
 </details>
 </dd>
 <dt id="xtuples.xtuples.nTuple.decorate"><code class="name flex">
-<span>def <span class="ident">decorate</span></span>(<span>cls)</span>
+<span>def <span class="ident">decorate</span></span>(<span>**methods)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2835,14 +3368,30 @@ def as_dict(cls, obj):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def decorate(meta, cls):
-    if cls.__name__ in REGISTRY:
-        print(&#34;NOTE, re-registering: {}&#34;.format(cls.__name__))
-    cls.pipe = meta.pipe
-    cls.partial = meta.partial
-    cls.cls = meta
-    REGISTRY[cls.__name__] = cls
-    return cls</code></pre>
+def decorate(meta, **methods):
+    def decorator(cls):
+        cls.pipe = meta.pipe
+        cls.partial = meta.partial
+        cls.cls = meta
+        for k, f in methods.items():
+            setattr(cls, k, f)
+        return cls
+    return decorator</code></pre>
+</details>
+</dd>
+<dt id="xtuples.xtuples.nTuple.enum"><code class="name flex">
+<span>def <span class="ident">enum</span></span>(<span>cls)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def enum(meta, cls):
+    cls = meta.decorate()(cls)
+    return functools.lru_cache(maxsize=1)(cls)</code></pre>
 </details>
 </dd>
 <dt id="xtuples.xtuples.nTuple.is_instance"><code class="name flex">
@@ -2851,9 +3400,9 @@ def decorate(meta, cls):
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; nTuple.is_instance(tuple)
 False
-&gt;&gt;&gt; nTuple.is_instance(Example)
+&gt;&gt;&gt; nTuple.is_instance(_Example)
 False
-&gt;&gt;&gt; nTuple.is_instance(Example(1, &quot;a&quot;))
+&gt;&gt;&gt; nTuple.is_instance(_Example(1, &quot;a&quot;))
 True
 </code></pre></div>
 <details class="source">
@@ -2865,9 +3414,9 @@ def is_instance(cls, obj):
     &#34;&#34;&#34;
     &gt;&gt;&gt; nTuple.is_instance(tuple)
     False
-    &gt;&gt;&gt; nTuple.is_instance(Example)
+    &gt;&gt;&gt; nTuple.is_instance(_Example)
     False
-    &gt;&gt;&gt; nTuple.is_instance(Example(1, &#34;a&#34;))
+    &gt;&gt;&gt; nTuple.is_instance(_Example(1, &#34;a&#34;))
     True
     &#34;&#34;&#34;
     return (
@@ -2883,9 +3432,9 @@ def is_instance(cls, obj):
 <dd>
 <div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; nTuple.is_subclass(tuple)
 False
-&gt;&gt;&gt; nTuple.is_subclass(Example(1, &quot;a&quot;))
+&gt;&gt;&gt; nTuple.is_subclass(_Example(1, &quot;a&quot;))
 False
-&gt;&gt;&gt; nTuple.is_subclass(Example)
+&gt;&gt;&gt; nTuple.is_subclass(_Example)
 True
 </code></pre></div>
 <details class="source">
@@ -2897,9 +3446,9 @@ def is_subclass(cls, t):
     &#34;&#34;&#34;
     &gt;&gt;&gt; nTuple.is_subclass(tuple)
     False
-    &gt;&gt;&gt; nTuple.is_subclass(Example(1, &#34;a&#34;))
+    &gt;&gt;&gt; nTuple.is_subclass(_Example(1, &#34;a&#34;))
     False
-    &gt;&gt;&gt; nTuple.is_subclass(Example)
+    &gt;&gt;&gt; nTuple.is_subclass(_Example)
     True
     &#34;&#34;&#34;
     try:
@@ -2932,16 +3481,16 @@ def partial(obj, f, *args, **kwargs):
 <span>def <span class="ident">pipe</span></span>(<span>obj, f, *args, at=None, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; example = Example(1, &quot;a&quot;)
-&gt;&gt;&gt; example.pipe(lambda a, b: a, None)
-Example(x=1, s='a', it=iTuple())
-&gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 1)
-&gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 'b')
-&gt;&gt;&gt; example.pipe(lambda a, b: a, a=None, at = 'b')
-&gt;&gt;&gt; example.pipe(lambda a, b: a, b=None, at = 'a')
-Example(x=1, s='a', it=iTuple())
-&gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 0)
-Example(x=1, s='a', it=iTuple())
+<div class="desc"><pre><code class="language-python-repl">&gt;&gt;&gt; _Example = _Example(1, &quot;a&quot;)
+&gt;&gt;&gt; _Example.pipe(lambda a, b: a, None)
+_Example(x=1, s='a', it=iTuple())
+&gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 1)
+&gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 'b')
+&gt;&gt;&gt; _Example.pipe(lambda a, b: a, a=None, at = 'b')
+&gt;&gt;&gt; _Example.pipe(lambda a, b: a, b=None, at = 'a')
+_Example(x=1, s='a', it=iTuple())
+&gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 0)
+_Example(x=1, s='a', it=iTuple())
 </code></pre></div>
 <details class="source">
 <summary>
@@ -2950,34 +3499,18 @@ Example(x=1, s='a', it=iTuple())
 <pre><code class="python">@staticmethod
 def pipe(obj, f, *args, at = None, **kwargs):
     &#34;&#34;&#34;
-    &gt;&gt;&gt; example = Example(1, &#34;a&#34;)
-    &gt;&gt;&gt; example.pipe(lambda a, b: a, None)
-    Example(x=1, s=&#39;a&#39;, it=iTuple())
-    &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 1)
-    &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = &#39;b&#39;)
-    &gt;&gt;&gt; example.pipe(lambda a, b: a, a=None, at = &#39;b&#39;)
-    &gt;&gt;&gt; example.pipe(lambda a, b: a, b=None, at = &#39;a&#39;)
-    Example(x=1, s=&#39;a&#39;, it=iTuple())
-    &gt;&gt;&gt; example.pipe(lambda a, b: a, None, at = 0)
-    Example(x=1, s=&#39;a&#39;, it=iTuple())
+    &gt;&gt;&gt; _Example = _Example(1, &#34;a&#34;)
+    &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None)
+    _Example(x=1, s=&#39;a&#39;, it=iTuple())
+    &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 1)
+    &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = &#39;b&#39;)
+    &gt;&gt;&gt; _Example.pipe(lambda a, b: a, a=None, at = &#39;b&#39;)
+    &gt;&gt;&gt; _Example.pipe(lambda a, b: a, b=None, at = &#39;a&#39;)
+    _Example(x=1, s=&#39;a&#39;, it=iTuple())
+    &gt;&gt;&gt; _Example.pipe(lambda a, b: a, None, at = 0)
+    _Example(x=1, s=&#39;a&#39;, it=iTuple())
     &#34;&#34;&#34;
     return pipe(f, obj, *args, at = at, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="xtuples.xtuples.nTuple.replace"><code class="name flex">
-<span>def <span class="ident">replace</span></span>(<span>*ks)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def replace(cls, *ks):
-    def f(obj, *vs):
-        return obj._replace(**{k: v for k, v in zip(ks, vs)})
-    return f</code></pre>
 </details>
 </dd>
 </dl>
@@ -3017,32 +3550,46 @@ def replace(cls, *ks):
 <h4><code><a title="xtuples.xtuples.iTuple" href="#xtuples.xtuples.iTuple">iTuple</a></code></h4>
 <ul class="two-column">
 <li><code><a title="xtuples.xtuples.iTuple.accumulate" href="#xtuples.xtuples.iTuple.accumulate">accumulate</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.all" href="#xtuples.xtuples.iTuple.all">all</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.any" href="#xtuples.xtuples.iTuple.any">any</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.append" href="#xtuples.xtuples.iTuple.append">append</a></code></li>
-<li><code><a title="xtuples.xtuples.iTuple.data" href="#xtuples.xtuples.iTuple.data">data</a></code></li>
-<li><code><a title="xtuples.xtuples.iTuple.decorate" href="#xtuples.xtuples.iTuple.decorate">decorate</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.chunkby" href="#xtuples.xtuples.iTuple.chunkby">chunkby</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.empty" href="#xtuples.xtuples.iTuple.empty">empty</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.enumerate" href="#xtuples.xtuples.iTuple.enumerate">enumerate</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.extend" href="#xtuples.xtuples.iTuple.extend">extend</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.filter" href="#xtuples.xtuples.iTuple.filter">filter</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.filter_eq" href="#xtuples.xtuples.iTuple.filter_eq">filter_eq</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.filterstar" href="#xtuples.xtuples.iTuple.filterstar">filterstar</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.first" href="#xtuples.xtuples.iTuple.first">first</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.first_where" href="#xtuples.xtuples.iTuple.first_where">first_where</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.flatten" href="#xtuples.xtuples.iTuple.flatten">flatten</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.fold" href="#xtuples.xtuples.iTuple.fold">fold</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.foldcum" href="#xtuples.xtuples.iTuple.foldcum">foldcum</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.foldstar" href="#xtuples.xtuples.iTuple.foldstar">foldstar</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.from_columns" href="#xtuples.xtuples.iTuple.from_columns">from_columns</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.from_index" href="#xtuples.xtuples.iTuple.from_index">from_index</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.from_index_values" href="#xtuples.xtuples.iTuple.from_index_values">from_index_values</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.from_items" href="#xtuples.xtuples.iTuple.from_items">from_items</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.from_keys" href="#xtuples.xtuples.iTuple.from_keys">from_keys</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.from_values" href="#xtuples.xtuples.iTuple.from_values">from_values</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.get" href="#xtuples.xtuples.iTuple.get">get</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.groupby" href="#xtuples.xtuples.iTuple.groupby">groupby</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.is_none" href="#xtuples.xtuples.iTuple.is_none">is_none</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.islice" href="#xtuples.xtuples.iTuple.islice">islice</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.iter" href="#xtuples.xtuples.iTuple.iter">iter</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.last" href="#xtuples.xtuples.iTuple.last">last</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.last_where" href="#xtuples.xtuples.iTuple.last_where">last_where</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.len" href="#xtuples.xtuples.iTuple.len">len</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.len_range" href="#xtuples.xtuples.iTuple.len_range">len_range</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.map" href="#xtuples.xtuples.iTuple.map">map</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.mapstar" href="#xtuples.xtuples.iTuple.mapstar">mapstar</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.none" href="#xtuples.xtuples.iTuple.none">none</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.not_none" href="#xtuples.xtuples.iTuple.not_none">not_none</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.one" href="#xtuples.xtuples.iTuple.one">one</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.partial" href="#xtuples.xtuples.iTuple.partial">partial</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.pipe" href="#xtuples.xtuples.iTuple.pipe">pipe</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.pop_first" href="#xtuples.xtuples.iTuple.pop_first">pop_first</a></code></li>
+<li><code><a title="xtuples.xtuples.iTuple.pop_last" href="#xtuples.xtuples.iTuple.pop_last">pop_last</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.prepend" href="#xtuples.xtuples.iTuple.prepend">prepend</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.pretend" href="#xtuples.xtuples.iTuple.pretend">pretend</a></code></li>
 <li><code><a title="xtuples.xtuples.iTuple.range" href="#xtuples.xtuples.iTuple.range">range</a></code></li>
@@ -3064,11 +3611,11 @@ def replace(cls, *ks):
 <li><code><a title="xtuples.xtuples.nTuple.annotations" href="#xtuples.xtuples.nTuple.annotations">annotations</a></code></li>
 <li><code><a title="xtuples.xtuples.nTuple.as_dict" href="#xtuples.xtuples.nTuple.as_dict">as_dict</a></code></li>
 <li><code><a title="xtuples.xtuples.nTuple.decorate" href="#xtuples.xtuples.nTuple.decorate">decorate</a></code></li>
+<li><code><a title="xtuples.xtuples.nTuple.enum" href="#xtuples.xtuples.nTuple.enum">enum</a></code></li>
 <li><code><a title="xtuples.xtuples.nTuple.is_instance" href="#xtuples.xtuples.nTuple.is_instance">is_instance</a></code></li>
 <li><code><a title="xtuples.xtuples.nTuple.is_subclass" href="#xtuples.xtuples.nTuple.is_subclass">is_subclass</a></code></li>
 <li><code><a title="xtuples.xtuples.nTuple.partial" href="#xtuples.xtuples.nTuple.partial">partial</a></code></li>
 <li><code><a title="xtuples.xtuples.nTuple.pipe" href="#xtuples.xtuples.nTuple.pipe">pipe</a></code></li>
-<li><code><a title="xtuples.xtuples.nTuple.replace" href="#xtuples.xtuples.nTuple.replace">replace</a></code></li>
 </ul>
 </li>
 </ul>
