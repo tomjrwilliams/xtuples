@@ -265,9 +265,6 @@ class iTuple(tuple):
     def __str__(self):
         return self.__repr__()
 
-    def __hash__(self):
-        return hash(self)
-
     # -----
 
     @classmethod
@@ -362,6 +359,9 @@ class iTuple(tuple):
 
     # def __contains__(self, v):
     #     return v in self
+
+    def index_of(self, v):
+        return self.index(v)
 
     def len(self):
         """
@@ -528,12 +528,15 @@ class iTuple(tuple):
         f,
         *iterables,
         at = None,
-        lazy = False
+        lazy = False,
+        **kwargs,
     ) -> iTuple:
         """
         >>> iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         """
+        if len(kwargs):
+            f = functools.partial(f, **kwargs)
         # if lazy and at is None:
         #     return map(f, self, *iterables)
         if at is None:
@@ -789,14 +792,38 @@ class iTuple(tuple):
                 yield v
         return type(self)(iter())
     
-    def sort(self, f = lambda v: v):
+    def sort(self, f = lambda v: v, reverse = False):
         """
         >>> iTuple.range(3).reverse().sort()
         iTuple(0, 1, 2)
         >>> iTuple.range(3).sort()
         iTuple(0, 1, 2)
         """
-        return type(self)(sorted(self, key = f))
+        return type(self)(sorted(self, key = f, reverse=reverse))
+    
+    def sortstar(self, f = lambda v: v, reverse = False):
+        """
+        >>> iTuple.range(3).reverse().sort()
+        iTuple(0, 1, 2)
+        >>> iTuple.range(3).sort()
+        iTuple(0, 1, 2)
+        """
+        return type(self)(sorted(self, key = lambda v: f(*v), reverse=reverse))
+
+    # NOTE: ie. for sorting back after some other transformation
+    def sort_with_indices(
+        self, f = lambda v: v, reverse=False
+    ):
+        return self.enumerate().sortstar(
+            lambda i, v: f(v), reverse=reverse
+        )
+
+    def sortstar_with_indices(
+        self, f = lambda v: v, reverse=False
+    ):
+        return self.enumerate().sortstar(
+            lambda i, v: f(*v), reverse=reverse
+        )
 
     def accumulate(self, f, initial = None, lazy = False):
         """
@@ -808,7 +835,10 @@ class iTuple(tuple):
         iTuple(0, 1, 3)
         """
         if lazy:
-            return itertools.accumulate(self, func=f, initial=initial)
+            return itertools.accumulate(
+                self, func=f, initial=initial
+                #
+            )
         return iTuple(itertools.accumulate(
             self, func=f, initial=initial
         ))
