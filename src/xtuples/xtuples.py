@@ -473,6 +473,20 @@ class iTuple(tuple):
     def all(self, f):
         return all(self.map(f, lazy=True))
 
+    def assert_all(self, f, f_error = None):
+        if f_error:
+            assert self.all(f), f_error(self)
+        else:
+            assert self.all(f)
+        return self
+
+    def assert_any(self, f, f_error = None):
+        if f_error:
+            assert self.any(f), f_error(self)
+        else:
+            assert self.any(f)
+        return self
+
     def filter_eq(self, v, f = None, eq = None, lazy = False):
         """
         >>> iTuple.range(3).filter_eq(1)
