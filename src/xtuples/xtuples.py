@@ -467,11 +467,25 @@ class iTuple(tuple):
             (value, *values, self)
         ))
 
-    def any(self, f):
+    def any(self, f = None, star = False):
+        if f is None:
+            return any(self)
+        elif star:
+            return any(self.map(lambda v: f(*v), lazy=True))
         return any(self.map(f, lazy=True))
+
+    def anystar(self, f):
+        return any(self.mapstar(f, lazy=True))
     
-    def all(self, f):
+    def all(self, f = None, star = False):
+        if f is None:
+            return all(self)
+        elif star:
+            return all(self.map(lambda v: f(*v), lazy=True))
         return all(self.map(f, lazy=True))
+
+    def allstar(self, f):
+        return all(self.mapstar(f))
 
     def assert_all(self, f, f_error = None):
         if f_error:
@@ -537,6 +551,16 @@ class iTuple(tuple):
     def not_none(self):
         return self.filter(lambda v: v is not None)
 
+    def i_min(self, key = None):
+        if key is None:
+            return min(self.enumerate(), key = lambda i, v: v)
+        return min(self.enumerate(), key = lambda i, v: key(v))
+
+    def i_max(self, key = None):
+        if key is None:
+            return max(self.enumerate(), key = lambda i, v: v)
+        return min(self.enumerate(), key = lambda i, v: key(v))
+
     def map(
         self,
         f,
@@ -579,6 +603,11 @@ class iTuple(tuple):
         if isinstance(i, slice):
             return type(self)(tuple_getitem(self, i))
         return tuple_getitem(self, i)
+
+    def __add__(self, v):
+        if isinstance(v, typing.Iterable):
+            return self.extend(v)
+        assert False, type(v)
 
     # def __iter__(self):
     #     return iter(self)
@@ -667,31 +696,116 @@ class iTuple(tuple):
         """
         return self[-1]
 
+    def insert(self, i, v):
+        """
+        >>> iTuple.range(3).insert(2, 4)
+        iTuple(0, 1, 4, 2)
+        """
+        return self[:i].append(v).extend(self[i:])
+
+    def instend(self, i, v):
+        return self[:i].extend(v).extend(self[i:])
+
     def pop_first(self):
         return self[1:]
 
     def pop_last(self):
         return self[:-1]
 
-    def first_where(self, f, default = None):
+    def pop(self, i):
+        return self[:i] + self[i + 1:]
+
+    def first_where(self, f, default = None, star = False):
         """
         >>> iTuple.range(3).first_where(lambda v: v > 0)
         1
         """
-        for v in self:
-            if f(v):
-                return v
+        if star:
+            for v in self:
+                if f(*v):
+                    return v
+        else:
+            for v in self:
+                if f(v):
+                    return v
         return default
 
-    def last_where(self, f, default = None):
+    def last_where(self, f, default = None, star = False):
         """
         >>> iTuple.range(3).last_where(lambda v: v < 2)
         1
         """
+        if star:
+            for v in reversed(self):
+                if f(*v):
+                    return v
         for v in reversed(self):
             if f(v):
                 return v
         return default
+
+    @classmethod
+    def n_from(cls, gen, n):
+        return cls.range(n).zip(gen).mapstar(
+            lambda i, v: v
+        )
+
+    @classmethod
+    def from_while(
+        cls, 
+        gen, 
+        f, 
+        n = None, 
+        star = False,
+        iters=None,
+        value=True,
+    ):
+        def _gen():
+            _n = 0
+            for i, v in enumerate(gen):
+                if iters is not None and i == iters:
+                    return
+                if n == _n:
+                    return
+                if star:
+                    if not f(*v) == value:
+                        return
+                else:
+                    if not f(v) == value:
+                        return
+                yield v
+                _n += 1
+        return cls(_gen())
+
+    @classmethod
+    def from_where(
+        cls, 
+        gen, 
+        f, 
+        n = None, 
+        star = False,
+        iters=None,
+        value=True,
+    ):
+        def _gen():
+            _n = 0
+            for i, v in enumerate(gen):
+                if iters is not None and i == iters:
+                    return
+                if n == _n:
+                    return
+                if star:
+                    if not f(*v) == value:
+                        continue
+                else:
+                    if not f(v) == value:
+                        continue
+                yield v
+                _n += 1
+        return cls(_gen())
+
+    def clear(self):
+        return type(self)()
 
     def take(self, n):
         """
@@ -805,14 +919,25 @@ class iTuple(tuple):
                 seen_add(v)
                 yield v
         return type(self)(iter())
+
+    def argsort(self, f = lambda v: v, star = False, reverse = False):
+        if star:
+            f_sort = lambda i, v: f(*v)
+        else:
+            f_sort = lambda i, v: f(v)
+        return self.enumerate().sortstar(
+            f=f_sort, reverse=reverse,
+        ).mapstar(lambda i, v: i)
     
-    def sort(self, f = lambda v: v, reverse = False):
+    def sort(self, f = lambda v: v, reverse = False, star = False):
         """
         >>> iTuple.range(3).reverse().sort()
         iTuple(0, 1, 2)
         >>> iTuple.range(3).sort()
         iTuple(0, 1, 2)
         """
+        if star:
+            return self.sortstar(f=f, reverse=reverse)
         return type(self)(sorted(self, key = f, reverse=reverse))
     
     def sortstar(self, f = lambda v: v, reverse = False):
@@ -953,16 +1078,58 @@ class _Example(typing.NamedTuple):
 
 # ---------------------------------------------------------------
 
-# TODO: context manager to control
-# if we add the type information when writing to json or not
+import contextlib
 
-# TODO: context mananger to control
-# lazy default behaviour (ie. default to lazy or not)
+@nTuple.decorate()
+class Flags(typing.NamedTuple):
+    
+    values: typing.Optional[dict] = {}
+
+    def add(self, v):
+        t = type(v)
+        if t not in self.values:
+            self.values[t] = iTuple()
+        self.values[t] = self.values[t].append(v)
+
+    def remove(self, t):
+        assert t in self.values
+        self.values[t] = self.values[t][:-1]
+
+    @contextlib.contextmanager
+    def context(self, *vs):
+        vs = iTuple(vs)
+        ts = vs.map(type)
+        assert ts.unique().len() == ts.len(), ts
+        try:
+            vs.map(self.add)
+            res = vs
+            yield res if res.len() > 1 else res[0]
+        finally:
+            ts.map(self.remove)
+
+    def set(self, *vs):
+        vs = iTuple(vs)
+        ts = vs.map(type)
+        assert ts.unique().len() == ts.len(), ts
+        vs.map(self.add)
+        res = vs
+        return res if res.len() > 1 else res[0]
+
+    def get(self, *ts):
+        ts = iTuple(ts)
+        assert ts.unique().len() == ts.len(), ts
+        res = ts.map(self.values.get).map(
+            lambda v: v if v is None else v.last()
+        )
+        return res if res.len() > 1 else res[0]
+
+# ---------------------------------------------------------------
 
 __all__ = [
     "iTuple",
     "nTuple",
     "fDict",
+    "Flags",
     # "_Example",
 ]
 
