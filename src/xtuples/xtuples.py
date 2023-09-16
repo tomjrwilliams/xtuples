@@ -1102,8 +1102,9 @@ class Flags(typing.NamedTuple):
         assert ts.unique().len() == ts.len(), ts
         try:
             vs.map(self.add)
-            res = vs
-            yield res if res.len() > 1 else res[0]
+            # res = vs
+            # yield res if res.len() > 1 else res[0]
+            yield self
         finally:
             ts.map(self.remove)
 
@@ -1112,14 +1113,19 @@ class Flags(typing.NamedTuple):
         ts = vs.map(type)
         assert ts.unique().len() == ts.len(), ts
         vs.map(self.add)
-        res = vs
-        return res if res.len() > 1 else res[0]
+        # res = vs
+        # return res if res.len() > 1 else res[0]
+        return self
 
     def get(self, *ts):
         ts = iTuple(ts)
         assert ts.unique().len() == ts.len(), ts
         res = ts.map(self.values.get).map(
-            lambda v: v if v is None else v.last()
+            lambda v: (
+                v if v is None 
+                else None if not v.len()
+                else v.last()
+            )
         )
         return res if res.len() > 1 else res[0]
 
