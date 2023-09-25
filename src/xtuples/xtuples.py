@@ -38,9 +38,6 @@ def pipe(f, obj, *args, at = None, discard=False, **kwargs):
 # ---------------------------------------------------------------
 
 
-# TODO: some kind of validation placeholder?
-# called in init, eg. quarter in [1 .. 4]
-
 class nTuple(abc.ABC):
 
     @abc.abstractmethod
@@ -114,7 +111,7 @@ class nTuple(abc.ABC):
         >>> ex.pipe(ex.cls.annotations)
         {'x': ForwardRef('int'), 's': ForwardRef('str'), 'it': ForwardRef('iTuple')}
         """
-        return fDict(obj.__annotations__)
+        return obj.__annotations__
 
     @classmethod
     def as_dict(cls, obj):
@@ -123,7 +120,7 @@ class nTuple(abc.ABC):
         >>> ex.pipe(ex.cls.as_dict)
         {'x': 1, 's': 'a', 'it': iTuple()}
         """
-        return fDict(obj._asdict())
+        return obj._asdict()
 
     @classmethod
     def decorate(meta, **methods):
@@ -140,96 +137,6 @@ class nTuple(abc.ABC):
     def enum(meta, cls):
         cls = meta.decorate()(cls)
         return functools.lru_cache(maxsize=1)(cls)
-
-# ---------------------------------------------------------------
-
-class fDict(collections.UserDict):
-    __slots__ = ()
-
-    data: dict
-
-    def pipe(self, f, *args, at=None, **kwargs):
-        """
-        >>> fDict({0: 1}).pipe(lambda d: d.map_values(
-        ...     lambda v: v + 1
-        ... ))
-        {0: 2}
-        """
-        res = pipe(f, self, *args, at = at, **kwargs)
-        if isinstance(res, dict):
-            return fDict(res)
-        return res
-
-    def partial(self, f, *args, **kwargs):
-        """
-        >>> f = fDict({0: 1}).partial(
-        ...     lambda d, n: d.map_values(lambda v: v + n)
-        ... )
-        >>> f(1)
-        {0: 2}
-        >>> f(2)
-        {0: 3}
-        """
-        return functools.partial(f, self, *args, **kwargs)
-
-    def keys_tuple(self):
-        """
-        >>> fDict({0: 1}).keys_tuple()
-        iTuple(0)
-        """
-        return iTuple.from_keys(self)
-
-    def values_tuple(self):
-        """
-        >>> fDict({0: 1}).values_tuple()
-        iTuple(1)
-        """
-        return iTuple.from_values(self)
-    
-    def items_tuple(self):
-        """
-        >>> fDict({0: 1}).items_tuple()
-        iTuple((0, 1))
-        """
-        return iTuple.from_items(self)
-
-    # NOTE: we have separate map implementations 
-    # as they are constant size, dict to dict
-    # other iterator functions should use iTuple (from the above)
-
-    def map_keys(self, f, *args, **kwargs):
-        """
-        >>> fDict({0: 1}).map_keys(lambda v: v + 1)
-        {1: 1}
-        """
-        return fDict(dict(
-            (f(k, *args, **kwargs), v) for k, v in self.items()
-        ))
-
-    def map_values(self, f, *args, **kwargs):
-        """
-        >>> fDict({0: 1}).map_values(lambda v: v + 1)
-        {0: 2}
-        """
-        return fDict(dict(
-            (k, f(v, *args, **kwargs)) for k, v in self.items()
-        ))
-
-    def map_items(self, f, *args, **kwargs):
-        """
-        >>> fDict({0: 1}).map_items(lambda k, v: (v, k))
-        {1: 0}
-        """
-        return fDict(dict(
-            f(k, v, *args, **kwargs) for k, v in self.items()
-        ))
-
-    def invert(self):
-        """
-        >>> fDict({0: 1}).invert()
-        {1: 0}
-        """
-        return fDict(dict((v, k) for k, v in self.items()))
 
 # ---------------------------------------------------------------
 
@@ -640,7 +547,7 @@ class iTuple(tuple):
         >>> iTuple.range(3).chunkby(lambda x: x < 2)
         iTuple(iTuple(0, 1), iTuple(2))
         >>> iTuple.range(3).chunkby(
-        ...    lambda x: x < 2, keys=True, pipe=fDict
+        ...    lambda x: x < 2, keys=True, pipe=dict
         ... )
         {True: iTuple(0, 1), False: iTuple(2)}
         """
@@ -662,7 +569,7 @@ class iTuple(tuple):
         >>> iTuple.range(3).groupby(lambda x: x < 2)
         iTuple(iTuple(2), iTuple(0, 1))
         >>> iTuple.range(3).groupby(
-        ...    lambda x: x < 2, keys=True, pipe=fDict
+        ...    lambda x: x < 2, keys=True, pipe=dict
         ... )
         {False: iTuple(2), True: iTuple(0, 1)}
         """
@@ -1078,65 +985,9 @@ class _Example(typing.NamedTuple):
 
 # ---------------------------------------------------------------
 
-import contextlib
-
-@nTuple.decorate()
-class Flags(typing.NamedTuple):
-    
-    values: typing.Optional[dict] = {}
-
-    def add(self, v):
-        t = type(v)
-        if t not in self.values:
-            self.values[t] = iTuple()
-        self.values[t] = self.values[t].append(v)
-
-    def remove(self, t):
-        assert t in self.values
-        self.values[t] = self.values[t][:-1]
-
-    @contextlib.contextmanager
-    def context(self, *vs):
-        vs = iTuple(vs)
-        ts = vs.map(type)
-        assert ts.unique().len() == ts.len(), ts
-        try:
-            vs.map(self.add)
-            # res = vs
-            # yield res if res.len() > 1 else res[0]
-            yield self
-        finally:
-            ts.map(self.remove)
-
-    def set(self, *vs):
-        vs = iTuple(vs)
-        ts = vs.map(type)
-        assert ts.unique().len() == ts.len(), ts
-        vs.map(self.add)
-        # res = vs
-        # return res if res.len() > 1 else res[0]
-        return self
-
-    def get(self, *ts):
-        ts = iTuple(ts)
-        assert ts.unique().len() == ts.len(), ts
-        res = ts.map(self.values.get).map(
-            lambda v: (
-                v if v is None 
-                else None if not v.len()
-                else v.last()
-            )
-        )
-        return res if res.len() > 1 else res[0]
-
-# ---------------------------------------------------------------
-
 __all__ = [
     "iTuple",
     "nTuple",
-    "fDict",
-    "Flags",
-    # "_Example",
 ]
 
 # ---------------------------------------------------------------
