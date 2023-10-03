@@ -14,6 +14,10 @@ import functools
 
 # ---------------------------------------------------------------
 
+_map = map
+
+# ---------------------------------------------------------------
+
 # NOTE: at worst, not worse, than an un-optimised canonical solution
 
 # where I cribbed from the itertools recipes (and other python docs), all credit to the original authors.
@@ -475,7 +479,7 @@ class iTuple(tuple):
         return any(self.map(f, lazy=True))
 
     def anystar(self, f):
-        return any(self.mapstar(f, lazy=True))
+        return any(self.mapstar(f))
     
     def all(self, f = None, star = False):
         if f is None:
@@ -578,13 +582,13 @@ class iTuple(tuple):
         # if lazy and at is None:
         #     return map(f, self, *iterables)
         if at is None:
-            return iTuple(map(f, self, *iterables))
+            return iTuple(_map(f, self, *iterables))
         elif isinstance(at, int):
-            return iTuple(map(
+            return iTuple(_map(
                 f, *iterables[:at], self, *iterables[at:]
             ))
         elif isinstance(at, str):
-            return iTuple(map(
+            return iTuple(_map(
                 f, *iterables, **{at: self}
             ))
         else:
@@ -1036,11 +1040,26 @@ class iTuple(tuple):
 
     # -----
 
+    def product(self):
+        return iTuple(itertools.product(*self))
+
+    def product_with(self, *iters):
+        return iTuple(itertools.product(self, *iters))
+
     # combinatorics
 
     # -----
 
 ituple = iTuple
+
+# ---------------------------------------------------------------
+
+def map(f, *iters):
+    if not len(iters):
+        def f_(*_iters):
+            return iTuple(_iters[0]).map(f, *_iters[1:])
+        return f_
+    return iTuple(iters[0]).map(f, *iters[1:])
 
 # ---------------------------------------------------------------
 
@@ -1119,7 +1138,11 @@ class Flags(typing.NamedTuple):
         ts = iTuple(ts)
         assert ts.unique().len() == ts.len(), ts
         res = ts.map(self.values.get).map(
-            lambda v: v if v is None else v.last()
+            lambda v: (
+                v if v is None
+                else None if not v.len()
+                else v.last()
+            )
         )
         return res if res.len() > 1 else res[0]
 

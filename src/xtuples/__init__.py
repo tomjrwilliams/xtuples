@@ -7,4 +7,7 @@ from .xtuples import (
     nTuple,
     Flags,
     # fDict,
+
+    map,
+    #
 )
