@@ -3,11 +3,6 @@
 # SPDX-License-Identifier: MIT
 from .xtuples import (
     iTuple,
-    ituple,
     nTuple,
-    Flags,
-    # fDict,
-
     map,
-    #
 )
