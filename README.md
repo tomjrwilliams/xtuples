@@ -21,23 +21,102 @@ pip install xtuples
 
 ## Overview
 
-xtuples is designed to make functional programming easier in Python.
+```python
+import typing
+import xtuples as xt
+```
 
-In particular, it is designed to enable one to mimic the function pipelines seen in languages like f#, but using method chaining.
+xtuples (xt) provides:
 
-The two key constructs are:
+- #1: xt.iTuple: a bunch of (primarily) itertools / functools boilerplate, wrapped into a tuple subclass.
+- #2: xt.nTuple.decorate: a decorator to inject .pipe(), .partial(), and a dict of any user defined methodsm, into a NamedTuple.
 
-- xtuples.iTuple: a tuple sub-class equipped with methods like .map() .filter() and .fold().
+### iTuple
 
-- xuples.nTuple.decorate: a decorator to inject .pipe() .partial() and a dict of user defined methods into NamedTuples (as they can only have a single base class, this - in an albeit somewhat hacky manner - allows us to define re-usable method interfaces for named tuples).
+The idea with #1 is to facilitate a functional style of programming, utilising method chaining to mimic the function pipelines seen in languages like f#.
 
-Taken together, these tend to lead us away from inheritance, and more towards composition: to a code base comprised entirely of either free functions, or (immutable) data structures implemented using either of the above.
+For instance, a naive way to get all the squared primes under x, might be:
+
+```python
+def primes_under(x):
+    return (
+        xt.iTuple.range(x)
+        .filter(lambda v: v > 1)
+        .fold(lambda primes, v: (
+            primes.append(v)
+            if not primes.any(lambda prime: v % prime == 0)
+            else primes
+        ), initial=xt.iTuple())
+    )
+
+sq_primes_under_10 = primes_under(10).map(lambda v: v ** 2)
+```
+
+### nTuple
+
+The idea with #2 is to ease method re-use between, and interface definitions on, NamedTuples, where rather than inheriting methods, we inject them in (on top of a type signature stub).
+
+For instance, we can share the function f between NamedTuples A and B, as so:
+
+```python
+class Has_X(typing.Protocol):
+    x: int
+
+def f(self: Has_X) -> int:
+    return self.x + 1
+
+@xt.nTuple.decorate(f = reusable_f)
+class A(typing.NamedTuple):
+
+    x: int
+    y: float
+
+    def f(self) -> int: ...
+
+@xt.nTuple.decorate(f = reusable_f)
+class B(typing.NamedTuple):
+
+    x: int
+    y: float
+
+    def f(self) -> int: ...
+```
+
+### JAX
 
 Worth highlighting is the compatibility this promotes with [JAX](https://jax.readthedocs.io/en/latest/index.html), an auto-grad / machine learning framework from the Google Brain / Deepmind folks.
 
-First, with xtuples, all our data structures are kinds of tuple, so JAX can take derivatives of / through all of our data structures without any further work (though we occasionally have to pipe iTuple -> tuple when passing into an optimiser).
+Because both iTuple and nTuple are kinds of tuple, JAX can take derivatives of / through without any further work (TODO: have a jax.register function on iTuple, so we don't need to call .pipe(tuple)).
 
-Second, whilst JAX is designed with the (somewhat opinionated) assumption that user functions are pure (without side effects), because all of our data structures are immutable, an xtuples code base will already tend to  be comprised of pure functions by default (so will generally require very little further refactoring to be JAX compliant).
+Furthermore, because both iTuple and nTuple are immutable, generally very little refactoring is required for an xtuples code-base to be compliant with the (somewhat opinionated) functional purity requirements of the JAX jit compiler.
+
+### xt.f
+
+xtuples also exposes:
+
+#3: xt.f: a module of sister methods to those in xt.iTuple, designed to provide / be used as arguments for their bound iTuple cousins.
+
+For instance, instead of:
+
+```python
+cum_sq_primes_under_10 = (
+    iTuple.range(10)
+    .map(primes_under)
+    .map(lambda it: it.map(lambda v: v ** 2))
+)
+```
+
+We can write:
+
+```python
+cum_sq_primes_under_10 = (
+    iTuple.range(10)
+    .map(primes_under)
+    .map(xt.f.map(lambda v: v ** 2))
+)
+```
+
+Ie. it simply saves us from writing out quite so many lambdas.
 
 ## Performance
 
@@ -45,7 +124,7 @@ Performance using xtuples is generally not worse than a canonical equivalent imp
 
 ### iTuple
 
-For instance, iTuple is simply a subclass of the built-in tuple, so has very similar performance characteristics.
+For instance, as iTuple is simply a subclass of the built-in tuple, it has very similar performance characteristics.
 
 #### Creation
 

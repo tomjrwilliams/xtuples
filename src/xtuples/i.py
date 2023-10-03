@@ -4,9 +4,6 @@ from __future__ import annotations
 import typing
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from _typeshed import SupportsDunderLT, SupportsDunderGT
-
 # ---------------------------------------------------------------
 
 import collections
@@ -18,17 +15,11 @@ import operator
 
 # ---------------------------------------------------------------
 
-tuple_getitem = tuple.__getitem__
-
-# ---------------------------------------------------------------
-
 T = typing.TypeVar('T')
 
 if TYPE_CHECKING:
-    CT = typing.Union[
-        SupportsDunderLT,
-        SupportsDunderGT,
-    ]
+    from _typeshed import SupportsDunderLT, SupportsDunderGT
+
 else:
     class SupportsDunderLT(typing.Protocol):
         def __lt__(self, __other: Any) -> bool: ...
@@ -36,19 +27,14 @@ else:
     class SupportsDunderGT(typing.Protocol):
         def __gt__(self, __other: Any) -> bool: ...
 
-    CT = typing.Union[
-        SupportsDunderLT,
-        SupportsDunderGT,
-    ]
+CT = typing.Union[
+    SupportsDunderLT,
+    SupportsDunderGT,
+]
 
 # ---------------------------------------------------------------
 
-# NOTE: at worst, not worse, than an un-optimised canonical solution
-
-# where I cribbed from the itertools recipes (and other python docs), all credit to the original authors.
-
-# where i didn't, i probably should have.
-
+tuple_getitem = tuple.__getitem__
 
 # ---------------------------------------------------------------
 
@@ -830,7 +816,7 @@ class iTuple(tuple, typing.Generic[T]):
             self, func=f, initial=initial
         ))
 
-    def foldcum(self, *args, initial=None, **kwargs):
+    def foldcum(self, *args, **kwargs):
         """
         >>> iTuple.range(3).foldcum(lambda acc, v: v)
         iTuple(0, 1, 2)
@@ -853,6 +839,17 @@ class iTuple(tuple, typing.Generic[T]):
         2
         >>> iTuple.range(3).fold(operator.add)
         3
+        >>> (
+        ...     iTuple.range(10)
+        ...     .filter(lambda v: v > 1)
+        ...     .fold(lambda primes, v: (
+        ...         primes.append(v)
+        ...         if not primes.any(lambda prime: v % prime == 0)
+        ...         else primes
+        ...     ), initial=iTuple())
+        ...     .map(lambda v: v ** 2)
+        ... )
+        iTuple(4, 9, 25, 49)
         """
         # acc = initial
         # for v in self.iter():

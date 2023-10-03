@@ -19,7 +19,7 @@ import functools
 
 from .i import iTuple, T, CT
 
-# these are for use in .map() etc.
+# TODO: these are for use in .map() etc.
 # so should return a func that accepts the relevant value, where it takes args / kwargs
 # if no args / kwargs, not necessary
 

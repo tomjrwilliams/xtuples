@@ -149,5 +149,23 @@ class _Example(typing.NamedTuple):
     def partial(self, f, *args, at = None, **kwargs):
         ...
 
+
+# ---------------------------------------------------------------
+
+# NOTE: from the README
+
+class Has_X(typing.Protocol):
+    x: int
+
+def reusable_f(self: Has_X) -> int:
+    return self.x + 1
+
+@nTuple.decorate(f = reusable_f)
+class Example_NamedTuple(typing.NamedTuple):
+
+    x: int
+
+    def f(self) -> int: ...
+
 # ---------------------------------------------------------------
 
