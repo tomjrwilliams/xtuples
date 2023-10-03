@@ -1,6 +1,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsDunderLT, SupportsDunderGT
+
 # ---------------------------------------------------------------
 
 import abc
@@ -14,30 +19,43 @@ import functools
 
 # ---------------------------------------------------------------
 
+_all = all
+_any = any
+_zip = zip
 _map = map
+_filter = filter
+_enumerate = enumerate
+
+tuple_getitem = tuple.__getitem__
+
+# ---------------------------------------------------------------
+
+T = typing.TypeVar('T')
+
+if TYPE_CHECKING:
+    CT = typing.Union[
+        SupportsDunderLT,
+        SupportsDunderGT,
+    ]
+else:
+    class SupportsDunderLT(typing.Protocol):
+        def __lt__(self, __other: Any) -> bool: ...
+
+    class SupportsDunderGT(typing.Protocol):
+        def __gt__(self, __other: Any) -> bool: ...
+
+    CT = typing.Union[
+        SupportsDunderLT,
+        SupportsDunderGT,
+    ]
 
 # ---------------------------------------------------------------
 
 # NOTE: at worst, not worse, than an un-optimised canonical solution
 
-# where I cribbed from the itertools recipes (and other python docs), all credit to the original authors.
+# where I cribbed from the itertools recipes (and other python docs), _all credit to the original authors.
 
 # where i didn't, i probably should have.
-
-# ---------------------------------------------------------------
-
-def pipe(f, obj, *args, at = None, discard=False, **kwargs):
-    if at is None:
-        res = f(obj, *args, **kwargs)
-    elif isinstance(at, int):
-        res = f(*args[:at], obj, *args[at:], **kwargs)
-    elif isinstance(at, str):
-        res = f(*args, **{at: obj}, **kwargs)
-    else:
-        assert False, at
-    if not discard:
-        return res
-    return obj
 
 # ---------------------------------------------------------------
 
@@ -144,9 +162,7 @@ class nTuple(abc.ABC):
 
 # ---------------------------------------------------------------
 
-tuple_getitem = tuple.__getitem__
-
-class iTuple(tuple):
+class iTuple(tuple, typing.Generic[T]):
 
     # -----
 
@@ -156,7 +172,7 @@ class iTuple(tuple):
             v = args[0]
             if isinstance(v, cls):
                 return v
-            elif not isinstance(v, collections.abc.Iterable):
+            elif not isinstance(v, collections.Iterable):
                 return ().__new__(cls, (v,))
         return super().__new__(cls, *args)
 
@@ -183,7 +199,7 @@ class iTuple(tuple):
         return cls(tuple())
 
     @classmethod
-    def one(cls, v):
+    def one(cls: typing.Type[I], v: T) -> iTuple[T]:
         return cls((v,))
 
     @classmethod
@@ -286,7 +302,7 @@ class iTuple(tuple):
         >>> iTuple.range(3).len()
         3
         """
-        return type(self).range(self.len())
+        return iTuple.range(self.len())
 
     def append(self, value, *values):
         """
@@ -328,11 +344,11 @@ class iTuple(tuple):
         iTuple((0, 1), (1, 2), (2, 3))
         """
         if len(itrs) == 0:
-            res = zip(*self)
+            res = _zip(*self)
         elif at is None:
-            res = zip(self, *itrs)
+            res = _zip(self, *itrs)
         elif isinstance(at, int):
-            res = zip(*itrs[:at], self, *itrs[at:])
+            res = _zip(*itrs[:at], self, *itrs[at:])
         else:
             assert False, at
         return res if lazy else iTuple(res)
@@ -380,23 +396,23 @@ class iTuple(tuple):
 
     def any(self, f = None, star = False):
         if f is None:
-            return any(self)
+            return _any(self)
         elif star:
-            return any(self.map(lambda v: f(*v), lazy=True))
-        return any(self.map(f, lazy=True))
+            return _any(self.map(lambda v: f(*v), lazy=True))
+        return _any(self.map(f, lazy=True))
 
     def anystar(self, f):
-        return any(self.mapstar(f))
+        return _any(self.mapstar(f))
     
     def all(self, f = None, star = False):
         if f is None:
-            return all(self)
+            return _all(self)
         elif star:
-            return all(self.map(lambda v: f(*v), lazy=True))
-        return all(self.map(f, lazy=True))
+            return _all(self.map(lambda v: f(*v), lazy=True))
+        return _all(self.map(f, lazy=True))
 
     def allstar(self, f):
-        return all(self.mapstar(f))
+        return _all(self.mapstar(f))
 
     def assert_all(self, f, f_error = None):
         if f_error:
@@ -418,13 +434,13 @@ class iTuple(tuple):
         iTuple(1)
         """
         if f is None and eq is None:
-            res = filter(lambda x: x == v, self)
+            res = _filter(lambda x: x == v, self)
         elif f is not None:
-            res = filter(lambda x: f(x) == v, self)
+            res = _filter(lambda x: f(x) == v, self)
         elif eq is not None:
-            res = filter(lambda x: eq(x, v), self)
+            res = _filter(lambda x: eq(x, v), self)
         elif f is not None and eq is not None:
-            res = filter(lambda x: eq(f(x), v), self)
+            res = _filter(lambda x: eq(f(x), v), self)
         else:
             assert False
         return res if lazy else type(self)(res)
@@ -462,15 +478,25 @@ class iTuple(tuple):
     def not_none(self):
         return self.filter(lambda v: v is not None)
 
-    def i_min(self, key = None):
-        if key is None:
-            return min(self.enumerate(), key = lambda i, v: v)
-        return min(self.enumerate(), key = lambda i, v: key(v))
+    def i_min(
+        self: iTuple[T], 
+        f: typing.Optional[typing.Callable[[T], CT]] = None
+    ) -> int:
+        if f is not None:
+            key = lambda _, v: f(v)
+        else:
+            key = lambda _, v: v
+        return self.enumerate().sortby(key).first()[0]
 
-    def i_max(self, key = None):
-        if key is None:
-            return max(self.enumerate(), key = lambda i, v: v)
-        return min(self.enumerate(), key = lambda i, v: key(v))
+    def i_max(
+        self: iTuple[T], 
+        f: typing.Optional[typing.Callable[[T], CT]] = None
+    ) -> int:
+        if f is not None:
+            key = lambda _, v: f(v)
+        else:
+            key = lambda _, v: v
+        return self.enumerate().sortby(key).last()[0]
 
     def map(
         self,
@@ -532,13 +558,13 @@ class iTuple(tuple):
         """
         return iter(self)
 
-    def enumerate(self):
+    def enumerate(self: iTuple[T]) -> iTuple[tuple[int, T]]:
         """
         >>> iTuple.range(3).enumerate()
         iTuple((0, 0), (1, 1), (2, 2))
         """
-        # TODO: allow lazy
-        return iTuple(enumerate(self))
+        # TODO: _allow lazy
+        return iTuple(_enumerate(self))
 
     def chunkby(
         self, 
@@ -579,7 +605,7 @@ class iTuple(tuple):
         """
         res = (
             self.chunkby(f, keys=True)
-            .sort(f = lambda kg: kg[0])
+            .sortby(lambda kg: kg[0])
             .chunkby(lambda kg: kg[0], keys = True)
             .map(lambda k_kgs: (
                 k_kgs[0],
@@ -673,7 +699,7 @@ class iTuple(tuple):
     ):
         def _gen():
             _n = 0
-            for i, v in enumerate(gen):
+            for i, v in _enumerate(gen):
                 if iters is not None and i == iters:
                     return
                 if n == _n:
@@ -700,7 +726,7 @@ class iTuple(tuple):
     ):
         def _gen():
             _n = 0
-            for i, v in enumerate(gen):
+            for i, v in _enumerate(gen):
                 if iters is not None and i == iters:
                     return
                 if n == _n:
@@ -839,8 +865,19 @@ class iTuple(tuple):
         return self.enumerate().sortstar(
             f=f_sort, reverse=reverse,
         ).mapstar(lambda i, v: i)
+
+    def sort(self: iTuple[CT], reverse=False) -> iTuple[CT]:
+        return type(self)(sorted(self, reverse=reverse))
     
-    def sort(self, f = lambda v: v, reverse = False, star = False):
+    def sortby(
+        self: iTuple[T], 
+        f: typing.Union[
+            typing.Callable[[T], CT],
+            typing.Callable[..., CT],
+        ],
+        reverse = False,
+        star = False,
+    ):
         """
         >>> iTuple.range(3).reverse().sort()
         iTuple(0, 1, 2)
@@ -849,16 +886,26 @@ class iTuple(tuple):
         """
         if star:
             return self.sortstar(f=f, reverse=reverse)
-        return type(self)(sorted(self, key = f, reverse=reverse))
+        return type(self)(
+            sorted(self, key = f, reverse=reverse)
+            #
+        )
     
-    def sortstar(self, f = lambda v: v, reverse = False):
+    def sortstar(
+        self: iTuple[T], 
+        f: typing.Callable[..., CT],
+        reverse = False
+    ):
         """
         >>> iTuple.range(3).reverse().sort()
         iTuple(0, 1, 2)
         >>> iTuple.range(3).sort()
         iTuple(0, 1, 2)
         """
-        return type(self)(sorted(self, key = lambda v: f(*v), reverse=reverse))
+        return type(self)(
+            sorted(self, key = lambda v: f(*v), reverse=reverse)
+            #
+        )
 
     # NOTE: ie. for sorting back after some other transformation
     def sort_with_indices(
@@ -961,14 +1008,299 @@ ituple = iTuple
 
 # ---------------------------------------------------------------
 
-def map(f, *iters):
-    if not len(iters):
-        def f_(*_iters):
-            return iTuple(_iters[0]).map(f, *_iters[1:])
-        return f_
-    return iTuple(iters[0]).map(f, *iters[1:])
+def pipe(f, obj, *args, at = None, discard=False, **kwargs):
+    if at is None:
+        res = f(obj, *args, **kwargs)
+    elif isinstance(at, int):
+        res = f(*args[:at], obj, *args[at:], **kwargs)
+    elif isinstance(at, str):
+        res = f(*args, **{at: obj}, **kwargs)
+    else:
+        assert False, at
+    if not discard:
+        return res
+    return obj
 
 # ---------------------------------------------------------------
+
+def empty(cls=iTuple) -> iTuple:
+    return cls.empty()
+
+def one(v, cls=iTuple) -> iTuple:
+    return cls.one(v)
+
+def none(n, cls = iTuple):
+    return cls.none(n)
+
+def irange(*args, cls = iTuple, **kwargs):
+    return cls.range(*args, **kwargs)
+
+def from_keys(d, cls = iTuple):
+    return cls.from_keys(d)
+    
+def from_values(d, cls = iTuple):
+    return cls.from_values(d)
+    
+def from_items(d, cls = iTuple):
+    return cls.from_items(d)
+
+def from_index(s, cls = iTuple):
+    return cls.from_index(s)
+
+def from_index_values(s, cls = iTuple):
+    return cls.from_index_values(s)
+
+def from_columns(s, cls = iTuple):
+    return cls.from_columns(s)
+
+# -----
+
+def partial(self, f, *args, **kwargs):
+    return self.partial(f, *args, **kwargs)
+
+# -----
+
+def index_of(self, v):
+    return self.index_of(v)
+
+def len_range(self):
+    return self.len_range()
+
+def append(self, value, *values):
+    return self.append(value, *values)
+
+def prepend(self, value, *values):
+    return self.prepend(value, *values)
+
+def zip(self, *itrs, lazy = False, at = None):
+    return self.zip(*itrs, lazy=lazy, at=at)
+
+def flatten(self):
+    return self.flatten()
+
+def extend(self, value, *values):
+    return self.extend(value, *values)
+
+def pretend(self, value, *values):
+    return self.pretend(value, *values)
+
+def any(self, f = None, star = False):
+    return self.any(f=f, star=star)
+
+def anystar(self, f):
+    return self.anystar(f)
+
+def all(self, f = None, star = False):
+    return self.all(f=f, star=star)
+
+def allstar(self, f):
+    return self.allstar(f)
+
+def assert_all(self, f, f_error = None):
+    return self.assert_all(f, f_error=f_error)
+
+def assert_any(self, f, f_error = None):
+    return self.assert_any(f, f_error=f_error)
+
+def filter_eq(self, v, f = None, eq = None, lazy = False):
+    return self.filter_eq(v, f=f, eq=eq, lazy=lazy)
+
+def filter(self, f, eq = None, lazy = False, **kws):
+    return self.filter(f, eq=eq, lazy=lazy, **kws)
+
+def filterstar(self, f, eq = None, lazy = False, **kws):
+    return self.filterstar(f, eq=eq, lazy=lazy, **kws)
+
+def is_none(self):
+    return self.is_none()
+
+def not_none(self):
+    return self.not_none()
+
+def i_min(self, key = None):
+    return self.i_min(key=key)
+
+def i_max(self, key = None):
+    return self.i_max(key=key)
+
+def map(
+    self,
+    f,
+    *iterables,
+    at = None,
+    lazy = False,
+    **kwargs,
+) -> iTuple:
+    return self.map(f, *iterables, at=at, lazy=lazy, **kwargs)
+
+# TODO: args, kwargs
+def mapstar(self, f):
+    return self.mapstar(f)
+
+def enumerate(self):
+    return self.enumerate()
+
+def chunkby(
+    self, 
+    f, 
+    lazy = False, 
+    keys = False,
+    pipe= None,
+):
+    return self.chunkby(f, lazy=lazy, keys=keys, pipe=pipe)
+
+def groupby(
+    self, f, lazy = False, keys = False, pipe = None
+):
+    return self.groupby(f, lazy=lazy, keys=keys, pipe=pipe)
+
+def first(self):
+    return self.first()
+
+def last(self):
+    return self.last()
+
+def insert(self, i, v):
+    return self.insert(i, v)
+
+def instend(self, i, v):
+    return self.instend(i, v)
+
+def pop_first(self):
+    return self.pop_first()
+
+def pop_last(self):
+    return self.pop_last()
+
+def pop(self, i):
+    return self.pop(i)
+
+def first_where(self, f, default = None, star = False):
+    return self.first_where(f, default=default, star=star)
+
+def last_where(self, f, default = None, star = False):
+    return self.last_where(f, default=default, star=star)
+
+def n_from(gen, n, cls = iTuple):
+    return cls.n_from(gen, n)
+
+def from_while(
+    gen, 
+    f, 
+    n = None, 
+    star = False,
+    iters=None,
+    value=True,
+    cls=iTuple,
+):
+    return cls.from_while(
+        gen,
+        f,
+        n=n,
+        star=star,
+        iters=iters,
+        value=value,
+    )
+
+def from_where(
+    gen, 
+    f, 
+    n = None, 
+    star = False,
+    iters=None,
+    value=True,
+    cls=iTuple,
+):
+    return cls.from_where(
+        gen,
+        f,
+        n=n,
+        star=star,
+        iters=iters,
+        value=value,
+    )
+
+def clear(self):
+    return self.clear()
+
+def take(self, n):
+    return self.take(n)
+
+def tail(self, n):
+    return self.tail(n)
+
+def reverse(self, lazy = False):
+    return self.reverse(lazy=lazy)
+
+def take_while(self, f, n = None, lazy = False):
+    return self.take_while(f, n=n, lazy=lazy)
+
+def tail_while(self, f, n = None):
+    return self.tail_while(f, n=n)
+
+# NOTE: from as in, starting from first true
+# versus above, which is until first false
+def take_after(self, f, n = None, lazy = False):
+    return self.take_after(f, n=n, lazy=lazy)
+
+def tail_after(self, f, n = None):
+    return self.tail_after(f, n=n)
+
+def islice(self, left = None, right = None):
+    return self.islice(left=left, right=right)
+
+def unique(self):
+    return self.unique()
+
+def argsort(self, f = lambda v: v, star = False, reverse = False):
+    return self.argsort(f=f, star=star, reverse=reverse)
+
+def sort(self, f = lambda v: v, reverse = False, star = False):
+    return self.sort(f=f, reverse=reverse, star=star)
+
+# TODO: sortby etc.
+
+def sortstar(self, f = lambda v: v, reverse = False):
+    return self.sortstar(f=f, reverse=reverse)
+
+# NOTE: ie. for sorting back after some other transformation
+def sort_with_indices(
+    self, f = lambda v: v, reverse=False
+):
+    return self.sort_with_indices(f=f, reverse=reverse)
+
+def sortstar_with_indices(
+    self, f = lambda v: v, reverse=False
+):
+    return self.sortstar_with_indices(f=f, reverse=reverse)
+
+def accumulate(self, f, initial = None, lazy = False):
+    return self.accumulate(f, initial=initial, lazy=lazy)
+
+def foldcum(self, *args, initial=None, **kwargs):
+    return self.foldcum(*args, initial=initial, **kwargs)
+
+def fold(self, f, initial=None):
+    return self.fold(f,initial =initial )
+
+def foldstar(self, f, initial=None):
+    return self.foldstar(f,initial =initial )
+
+# -----
+
+def product(self):
+    return self.product()
+
+def product_with(self, *iters):
+    return self.product_with()
+
+# TODO: other combinatorics
+
+# TODO: auto gen the tests by inspecting methods on ituple?
+# to ensure all have de-bound versions
+
+# ---------------------------------------------------------------
+
 
 @nTuple.decorate()
 class _Example(typing.NamedTuple):
@@ -1004,9 +1336,12 @@ class _Example(typing.NamedTuple):
 
 # ---------------------------------------------------------------
 
+I = typing.TypeVar('I', bound=iTuple)
+
 __all__ = [
     "iTuple",
     "nTuple",
+    "map",
 ]
 
 # ---------------------------------------------------------------
