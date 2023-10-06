@@ -2,6 +2,6 @@
 #
 # SPDX-License-Identifier: MIT
 
-from .i import iTuple, pipe
+from .i import iTuple, iLazy, pipe
 from .n import nTuple
 from . import f

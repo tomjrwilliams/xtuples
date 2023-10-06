@@ -19,6 +19,13 @@ import operator
 T = typing.TypeVar('T')
 U = typing.TypeVar('U')
 
+U0 = typing.TypeVar('U0')
+U1 = typing.TypeVar('U1')
+U2 = typing.TypeVar('U2')
+U3 = typing.TypeVar('U3')
+U4 = typing.TypeVar('U4')
+U5 = typing.TypeVar('U5')
+
 if TYPE_CHECKING:
     from _typeshed import SupportsDunderLT, SupportsDunderGT
 
@@ -235,7 +242,88 @@ class iTuple(tuple, typing.Generic[T]):
         """
         return iTuple((value, *values, *self,))
 
-    def zip(self, *itrs, lazy = False, at = None):
+
+    @typing.overload
+    def zip(
+        self: iTuple[T],
+        lazy=False,
+    ) -> iTuple[tuple]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[T],
+        itr_0: typing.Iterator[U0],
+        lazy=False,
+    ) -> iTuple[tuple[T, U0]]: ...
+    
+    @typing.overload
+    def zip(
+        self: iTuple[T],
+        itr_0: typing.Iterator[U0],
+        itr_1: typing.Iterator[U1],
+        lazy=False,
+    ) -> iTuple[tuple[T, U0, U1]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[T],
+        itr_0: typing.Iterator[U0],
+        itr_1: typing.Iterator[U1],
+        itr_2: typing.Iterator[U2],
+        lazy=False,
+    ) -> iTuple[tuple[T, U0, U1, U2]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[T],
+        itr_0: typing.Iterator[U0],
+        itr_1: typing.Iterator[U1],
+        itr_2: typing.Iterator[U2],
+        itr_3: typing.Iterator[U3],
+        lazy=False,
+    ) -> iTuple[tuple[T, U0, U1, U2, U3]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[T],
+        itr_0: typing.Iterator[U0],
+        itr_1: typing.Iterator[U1],
+        itr_2: typing.Iterator[U2],
+        itr_3: typing.Iterator[U3],
+        itr_4: typing.Iterator[U4],
+        lazy=False,
+    ) -> iTuple[tuple[T, U0, U1, U2, U3, U4]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[T],
+        itr_0: typing.Iterator[U0],
+        itr_1: typing.Iterator[U1],
+        itr_2: typing.Iterator[U2],
+        itr_3: typing.Iterator[U3],
+        itr_4: typing.Iterator[U4],
+        itr_5: typing.Iterator[U5],
+        lazy=False,
+    ) -> iTuple[tuple[T, U0, U1, U2, U3, U4, U5]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[T],
+        itr_0: typing.Iterator[U0],
+        itr_1: typing.Iterator[U1],
+        itr_2: typing.Iterator[U2],
+        itr_3: typing.Iterator[U3],
+        itr_4: typing.Iterator[U4],
+        itr_5: typing.Iterator[U5],
+        *iters: typing.Iterator,
+        lazy=False,
+    ) -> iTuple: ...
+
+    def zip(
+        self,
+        *itrs,
+        lazy = False
+    ):
         """
         >>> iTuple([[1, 1], [2, 2], [3, 3]]).zip()
         iTuple((1, 2, 3), (1, 2, 3))
@@ -246,13 +334,7 @@ class iTuple(tuple, typing.Generic[T]):
         """
         if len(itrs) == 0:
             res = zip(*self)
-        elif at is None:
-            res = zip(self, *itrs)
-        elif isinstance(at, int):
-            res = zip(*itrs[:at], self, *itrs[at:])
-        else:
-            assert False, at
-        return res if lazy else iTuple(res)
+        return iLazy(res) if lazy else iTuple(res)
 
     def flatten(self):
         """
@@ -450,7 +532,7 @@ class iTuple(tuple, typing.Generic[T]):
     def map(
         self: iTuple,
         f: typing.Callable[..., U],
-        *iterables,
+        *iterables: typing.Iterable,
         star: bool = False,
         lazy: bool = False,
         **kwargs,
@@ -867,7 +949,59 @@ class iTuple(tuple, typing.Generic[T]):
             lambda i, v: f(*v), reverse=reverse
         )
 
-    def accumulate(self, f, initial = None, lazy = False):
+    @typing.overload
+    def foldcum(
+        self: iTuple[T], 
+        f: typing.Callable[[U, T], U], 
+        initial: typing.Optional[U] = None, 
+        *,
+        lazy: typing.Literal[True],
+        star = False,
+        **kwargs,
+    ) -> iLazy[U]: ...
+    
+    @typing.overload
+    def foldcum(
+        self: iTuple[T], 
+        f: typing.Callable[[U, T], U], 
+        initial: typing.Optional[U] = None, 
+        *,
+        lazy: typing.Literal[False] = False,
+        star = False,
+        **kwargs,
+    ) -> iTuple[U]: ...
+
+    @typing.overload
+    def foldcum(
+        self: iTuple, 
+        f: typing.Callable[..., U], 
+        initial: typing.Optional[U] = None, 
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[U]: ...
+    
+    @typing.overload
+    def foldcum(
+        self: iTuple, 
+        f: typing.Callable[..., U], 
+        initial: typing.Optional[U] = None, 
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[U]: ...
+
+    def foldcum(
+        self,
+        f,
+        initial: typing.Optional[U] = None, 
+        *,
+        lazy: bool = False,
+        star: bool = False,
+        **kwargs,
+    ) -> typing.Union[iLazy[U], iTuple[U]]:
         """
         >>> iTuple.range(3).accumulate(lambda acc, v: v)
         iTuple(0, 1, 2)
@@ -876,31 +1010,44 @@ class iTuple(tuple, typing.Generic[T]):
         >>> iTuple.range(3).accumulate(operator.add)
         iTuple(0, 1, 3)
         """
-        if lazy:
-            return itertools.accumulate(
-                self, func=f, initial=initial
-                #
-            )
-        return iTuple(itertools.accumulate(
-            self, func=f, initial=initial
-        ))
+        func: typing.Callable[[U, T], U]
+        res: typing.Iterator[U]
+        if len(kwargs):
+            f = functools.partial(f, **kwargs)
+        func = f if not star else lambda acc, v: f(acc, *v)
+        res = itertools.accumulate(
+            self, func=func, initial=initial
+        )
+        return iLazy(res) if lazy else iTuple(res)
 
-    def foldcum(self, *args, **kwargs):
-        """
-        >>> iTuple.range(3).foldcum(lambda acc, v: v)
-        iTuple(0, 1, 2)
-        >>> iTuple.range(3).foldcum(operator.add)
-        iTuple(0, 1, 3)
-        """
-        # res = []
-        # acc = initial
-        # for x in self.iter():
-        #     acc = f(acc, x)
-        #     res.append(acc)
-        # return iTuple(tuple(res))
-        return self.accumulate(*args, **kwargs)
+    @typing.overload
+    def fold(
+        self: iTuple[T], 
+        f: typing.Callable[[U, T], U],
+        initial: typing.Optional[U] = None, 
+        *,
+        star: bool = False,
+        **kwargs,
+    ) -> U: ...
 
-    def fold(self, f, initial=None):
+    @typing.overload
+    def fold(
+        self: iTuple, 
+        f: typing.Callable[..., U],
+        initial: typing.Optional[U] = None, 
+        *,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> U: ...
+
+    def fold(
+        self,
+        f,
+        initial: typing.Optional[U] = None, 
+        *,
+        star: bool = False,
+        **kwargs,
+    ) -> U:
         """
         >>> iTuple.range(3).fold(lambda acc, v: v)
         2
@@ -920,16 +1067,20 @@ class iTuple(tuple, typing.Generic[T]):
         ... )
         iTuple(4, 9, 25, 49)
         """
-        # acc = initial
-        # for v in self.iter():
-        #     acc = f(acc, v)
-        # return iTuple(tuple(acc))
+        func: typing.Callable[[U, T], U]
+        if len(kwargs):
+            f = functools.partial(f, **kwargs)
+        func = f if not star else lambda acc, v: f(acc, *v)
         if initial is not None:
-            return functools.reduce(f, self, initial)
-        else:
-            return functools.reduce(f, self)
+            return functools.reduce(func, self, initial)
+        return functools.reduce(func, self)
 
-    def foldstar(self, f, initial=None):
+    def foldstar(
+        self: iTuple[T], 
+        f: typing.Callable[..., U], 
+        initial: typing.Optional[U] = None, 
+        **kwargs,
+    ) -> U:
         """
         >>> iTuple.range(3).fold(lambda acc, v: v)
         2
@@ -938,15 +1089,7 @@ class iTuple(tuple, typing.Generic[T]):
         >>> iTuple.range(3).fold(operator.add)
         3
         """
-        # acc = initial
-        # for v in self.iter():
-        #     acc = f(acc, v)
-        # return iTuple(tuple(acc))
-        fstar = lambda acc, v: f(acc, *v)
-        if initial is not None:
-            return functools.reduce(fstar, self, initial)
-        else:
-            return functools.reduce(fstar, self)
+        return self.fold(f, initial=initial, star=True, **kwargs)
 
     # -----
 
@@ -976,21 +1119,5 @@ def pipe(f, obj, *args, at = None, discard=False, **kwargs):
     if not discard:
         return res
     return obj
-
-# ---------------------------------------------------------------
-
-if TYPE_CHECKING:
-    
-    f = lambda v: v * 2
-
-    int_iter: iLazy[int] = iTuple.range(3).map(f, lazy = True)
-    int_itup: iTuple[int] = iTuple.range(3).map(f)
-
-    filt = lambda v: v < 3
-
-    int_iter = int_iter.eager().filter(filt, lazy = True)
-    int_itup = int_itup.filter(filt)
-
-    assert int_iter.eager() == int_itup
 
 # ---------------------------------------------------------------

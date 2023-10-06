@@ -3,4 +3,8 @@
 # SPDX-License-Identifier: MIT
 
 import sys
+
+sys.path.append("./__local__")
 sys.path.append("./src")
+
+import PATHS
