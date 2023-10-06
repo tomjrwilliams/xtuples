@@ -34,9 +34,6 @@ def one(v, cls=iTuple) -> iTuple:
 def none(n, cls = iTuple):
     return cls.none(n)
 
-def irange(*args, cls = iTuple, **kwargs):
-    return cls.range(*args, **kwargs)
-
 def from_keys(d, cls = iTuple):
     return cls.from_keys(d)
     
@@ -54,134 +51,6 @@ def from_index_values(s, cls = iTuple):
 
 def from_columns(s, cls = iTuple):
     return cls.from_columns(s)
-
-# -----
-
-def partial(self, f, *args, **kwargs):
-    return self.partial(f, *args, **kwargs)
-
-# -----
-
-def index_of(self, v):
-    return self.index_of(v)
-
-def len_range(self):
-    return self.len_range()
-
-def append(self, value, *values):
-    return self.append(value, *values)
-
-def prepend(self, value, *values):
-    return self.prepend(value, *values)
-
-def zip(self, *itrs, lazy = False, at = None):
-    return self.zip(*itrs, lazy=lazy, at=at)
-
-def flatten(self):
-    return self.flatten()
-
-def extend(self, value, *values):
-    return self.extend(value, *values)
-
-def pretend(self, value, *values):
-    return self.pretend(value, *values)
-
-def any(self, f = None, star = False):
-    return self.any(f=f, star=star)
-
-def anystar(self, f):
-    return self.anystar(f)
-
-def all(self, f = None, star = False):
-    return self.all(f=f, star=star)
-
-def allstar(self, f):
-    return self.allstar(f)
-
-def assert_all(self, f, f_error = None):
-    return self.assert_all(f, f_error=f_error)
-
-def assert_any(self, f, f_error = None):
-    return self.assert_any(f, f_error=f_error)
-
-def filter_eq(self, v, f = None, eq = None, lazy = False):
-    return self.filter_eq(v, f=f, eq=eq, lazy=lazy)
-
-def filter(self, f, eq = None, lazy = False, **kws):
-    return self.filter(f, eq=eq, lazy=lazy, **kws)
-
-def filterstar(self, f, eq = None, lazy = False, **kws):
-    return self.filterstar(f, eq=eq, lazy=lazy, **kws)
-
-def is_none(self):
-    return self.is_none()
-
-def not_none(self):
-    return self.not_none()
-
-def i_min(self, key = None):
-    return self.i_min(key=key)
-
-def i_max(self, key = None):
-    return self.i_max(key=key)
-
-def map(
-    self,
-    f,
-    *iterables,
-    at = None,
-    lazy = False,
-    **kwargs,
-) -> iTuple:
-    return self.map(f, *iterables, at=at, lazy=lazy, **kwargs)
-
-# TODO: args, kwargs
-def mapstar(self, f):
-    return self.mapstar(f)
-
-def enumerate(self):
-    return self.enumerate()
-
-def chunkby(
-    self, 
-    f, 
-    lazy = False, 
-    keys = False,
-    pipe= None,
-):
-    return self.chunkby(f, lazy=lazy, keys=keys, pipe=pipe)
-
-def groupby(
-    self, f, lazy = False, keys = False, pipe = None
-):
-    return self.groupby(f, lazy=lazy, keys=keys, pipe=pipe)
-
-def first(self):
-    return self.first()
-
-def last(self):
-    return self.last()
-
-def insert(self, i, v):
-    return self.insert(i, v)
-
-def instend(self, i, v):
-    return self.instend(i, v)
-
-def pop_first(self):
-    return self.pop_first()
-
-def pop_last(self):
-    return self.pop_last()
-
-def pop(self, i):
-    return self.pop(i)
-
-def first_where(self, f, default = None, star = False):
-    return self.first_where(f, default=default, star=star)
-
-def last_where(self, f, default = None, star = False):
-    return self.last_where(f, default=default, star=star)
 
 def n_from(gen, n, cls = iTuple):
     return cls.n_from(gen, n)
@@ -222,79 +91,302 @@ def from_where(
         value=value,
     )
 
+# -----
+
+def partial(f, *args, **kwargs):
+    """
+    
+    """
+    def res(self, **kws):
+        return self.partial(f, *args, **kwargs, **kws)
+    return res
+
+# -----
+
+def index_of(v):
+    def res(self):
+        return self.index_of(v)
+    return res
+
+def len_range(self):
+    return self.len_range()
+
+def append(value, *values):
+    def res(self):
+        return self.append(value, *values)
+    return res
+
+def prepend(value, *values):
+    def res(self):
+        return self.prepend(value, *values)
+    return res
+
+def zip(*itrs, lazy = False, at = None):
+    def res(self):
+        return self.zip(*itrs, lazy=lazy, at=at)
+    return res
+
+def flatten(self):
+    return self.flatten()
+
+def extend(value, *values):
+    def res(self):
+        return self.extend(value, *values)
+    return res
+
+def pretend(value, *values):
+    def res(self):
+        return self.pretend(value, *values)
+    return res
+
+def any(f = None, star = False):
+    def res(self):
+        return self.any(f=f, star=star)
+    return res
+
+def anystar(f):
+    def res(self):
+        return self.anystar(f)
+    return res
+
+def all(f = None, star = False):
+    def res(self):
+        return self.all(f=f, star=star)
+    return res
+
+def allstar(f):
+    def res(self):
+        return self.allstar(f)
+    return res
+
+def assert_all(f, f_error = None):
+    def res(self):
+        return self.assert_all(f, f_error=f_error)
+    return res
+
+def assert_any(f, f_error = None):
+    def res(self):
+        return self.assert_any(f, f_error=f_error)
+    return res
+
+def filter_eq(v, f = None, eq = None, lazy = False):
+    def res(self):
+        return self.filter_eq(v, f=f, eq=eq, lazy=lazy)
+    return res
+
+def filter(f, eq = None, lazy = False, **kws):
+    def res(self):
+        return self.filter(f, eq=eq, lazy=lazy, **kws)
+    return res
+
+def filterstar(f, eq = None, lazy = False, **kws):
+    def res(self):
+        return self.filterstar(f, eq=eq, lazy=lazy, **kws)
+    return res
+
+def is_none(self):
+    return self.is_none()
+
+def not_none(self):
+    return self.not_none()
+
+def i_min(key = None):
+    def res(self):
+        return self.i_min(key=key)
+    return res
+
+def i_max(key = None):
+    def res(self):
+        return self.i_max(key=key)
+    return res
+
+def map(
+    f,
+    *iterables,
+    lazy = False,
+    star=False,
+    **kwargs,
+):
+    def res(self):
+        return self.map(
+            f, 
+            *iterables, 
+            lazy=lazy,
+            star=star, 
+            **kwargs
+        )
+    return res
+
+# TODO: args, kwargs
+def mapstar(f):
+    def res(self):
+        return self.mapstar(f)
+    return res
+
+def enumerate(self):
+    return self.enumerate()
+
+def chunkby(
+    f, 
+    lazy = False, 
+    keys = False,
+    pipe= None,
+):
+    def res(self):
+        return self.chunkby(f, lazy=lazy, keys=keys, pipe=pipe)
+    return res
+
+def groupby(
+    f, lazy = False, keys = False, pipe = None
+):
+    def res(self):
+        return self.groupby(f, lazy=lazy, keys=keys, pipe=pipe)
+    return res
+
+def first(self):
+    return self.first()
+
+def last(self):
+    return self.last()
+
+def insert(i, v):
+    def res(self):
+        return self.insert(i, v)
+    return res
+
+def instend(i, v):
+    def res(self):
+        return self.instend(i, v)
+    return res
+
+def pop_first(self):
+    return self.pop_first()
+
+def pop_last(self):
+    return self.pop_last()
+
+def pop(self, i):
+    return self.pop(i)
+
+def first_where(f, default = None, star = False):
+    def res(self):
+        return self.first_where(f, default=default, star=star)
+    return res
+
+def last_where(f, default = None, star = False):
+    def res(self):
+        return self.last_where(f, default=default, star=star)
+    return res
+
 def clear(self):
     return self.clear()
 
-def take(self, n):
-    return self.take(n)
+def take(n):
+    def res(self):
+        return self.take(n)
+    return res
 
-def tail(self, n):
-    return self.tail(n)
+def tail(n):
+    def res(self):
+        return self.tail(n)
+    return res
 
-def reverse(self, lazy = False):
-    return self.reverse(lazy=lazy)
+def reverse(lazy = False):
+    def res(self):
+        return self.reverse(lazy=lazy)
+    return res
 
-def take_while(self, f, n = None, lazy = False):
-    return self.take_while(f, n=n, lazy=lazy)
+def take_while(f, n = None, lazy = False):
+    def res(self):
+        return self.take_while(f, n=n, lazy=lazy)
+    return res
 
-def tail_while(self, f, n = None):
-    return self.tail_while(f, n=n)
+def tail_while(f, n = None):
+    def res(self):
+        return self.tail_while(f, n=n)
+    return res
 
 # NOTE: from as in, starting from first true
 # versus above, which is until first false
-def take_after(self, f, n = None, lazy = False):
-    return self.take_after(f, n=n, lazy=lazy)
+def take_after(f, n = None, lazy = False):
+    def res(self):
+        return self.take_after(f, n=n, lazy=lazy)
+    return res
 
-def tail_after(self, f, n = None):
-    return self.tail_after(f, n=n)
+def tail_after(f, n = None):
+    def res(self):
+        return self.tail_after(f, n=n)
+    return res
 
-def islice(self, left = None, right = None):
-    return self.islice(left=left, right=right)
+def islice(left = None, right = None):
+    def res(self):
+        return self.islice(left=left, right=right)
+    return res
 
 def unique(self):
     return self.unique()
 
-def argsort(self, f = lambda v: v, star = False, reverse = False):
-    return self.argsort(f=f, star=star, reverse=reverse)
+def argsort(f = lambda v: v, star = False, reverse = False):
+    def res(self):
+        return self.argsort(f=f, star=star, reverse=reverse)
+    return res
 
-def sort(self, f = lambda v: v, reverse = False, star = False):
-    return self.sort(f=f, reverse=reverse, star=star)
+def sort(f = lambda v: v, reverse = False, star = False):
+    def res(self):
+        return self.sort(f=f, reverse=reverse, star=star)
+    return res
 
 # TODO: sortby etc.
 
-def sortstar(self, f = lambda v: v, reverse = False):
-    return self.sortstar(f=f, reverse=reverse)
+def sortstar(f = lambda v: v, reverse = False):
+    def res(self):
+        return self.sortstar(f=f, reverse=reverse)
+    return res
 
 # NOTE: ie. for sorting back after some other transformation
 def sort_with_indices(
-    self, f = lambda v: v, reverse=False
+    f = lambda v: v, reverse=False
 ):
-    return self.sort_with_indices(f=f, reverse=reverse)
+    def res(self):
+        return self.sort_with_indices(f=f, reverse=reverse)
+    return res
 
 def sortstar_with_indices(
-    self, f = lambda v: v, reverse=False
+    f = lambda v: v, reverse=False
 ):
-    return self.sortstar_with_indices(f=f, reverse=reverse)
+    def res(self):
+        return self.sortstar_with_indices(f=f, reverse=reverse)
+    return res
 
-def accumulate(self, f, initial = None, lazy = False):
-    return self.accumulate(f, initial=initial, lazy=lazy)
+def accumulate(f, initial = None, lazy = False):
+    def res(self):
+        return self.accumulate(f, initial=initial, lazy=lazy)
+    return res
 
-def foldcum(self, *args, initial=None, **kwargs):
-    return self.foldcum(*args, initial=initial, **kwargs)
+def foldcum(*args, initial=None, **kwargs):
+    def res(self):
+        return self.foldcum(*args, initial=initial, **kwargs)
+    return res
 
-def fold(self, f, initial=None):
-    return self.fold(f,initial =initial )
+def fold(f, initial=None):
+    def res(self):
+        return self.fold(f,initial =initial )
+    return res
 
-def foldstar(self, f, initial=None):
-    return self.foldstar(f,initial =initial )
+def foldstar(f, initial=None):
+    def res(self):
+        return self.foldstar(f,initial =initial )
+    return res
 
 # -----
 
 def product(self):
     return self.product()
 
-def product_with(self, *iters):
-    return self.product_with()
+def product_with(*iters):
+    def res(self):
+        return self.product_with(*iters)
+    return res
 
 # TODO: other combinatorics
 

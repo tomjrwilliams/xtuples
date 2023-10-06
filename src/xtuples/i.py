@@ -1,6 +1,7 @@
 
 from __future__ import annotations
 
+import enum
 import typing
 from typing import TYPE_CHECKING
 
@@ -16,6 +17,7 @@ import operator
 # ---------------------------------------------------------------
 
 T = typing.TypeVar('T')
+U = typing.TypeVar('U')
 
 if TYPE_CHECKING:
     from _typeshed import SupportsDunderLT, SupportsDunderGT
@@ -35,6 +37,29 @@ CT = typing.Union[
 # ---------------------------------------------------------------
 
 tuple_getitem = tuple.__getitem__
+
+# ---------------------------------------------------------------
+
+class iLazy(typing.Iterator[T]):
+
+    it: typing.Iterator[T]
+    done: bool = False
+
+    def __init__(self, it: typing.Iterator[T]):
+        setattr(self, "__iter__", it.__iter__)
+        setattr(self, "__next__", it.__next__)
+        self.it = it
+
+    def __iter__(self):
+        return self.it.__iter__()
+    
+    def __next__(self):
+        return self.it.__next__()
+
+    def eager(self):
+        assert not self.done, self
+        self.done = True
+        return iTuple(self.it)
 
 # ---------------------------------------------------------------
 
@@ -274,8 +299,8 @@ class iTuple(tuple, typing.Generic[T]):
         if f is None:
             return any(self)
         elif star:
-            return any(self.map(lambda v: f(*v), lazy=True))
-        return any(self.map(f, lazy=True))
+            return any(self.map(f, star=True, lazy=True))
+        return any(self.map(f, lazy = True))
 
     def anystar(self, f):
         return any(self.mapstar(f))
@@ -290,69 +315,95 @@ class iTuple(tuple, typing.Generic[T]):
     def allstar(self, f):
         return all(self.mapstar(f))
 
-    def assertall(self, f, f_error = None):
+    def assert_all(self, f, f_error = None, star = False):
         if f_error:
-            assert self.all(f), f_error(self)
+            assert self.all(f, star = star), f_error(self)
         else:
-            assert self.all(f)
+            assert self.all(f, star = star)
         return self
 
-    def assertany(self, f, f_error = None):
+    def assert_any(self, f, f_error = None, star = False):
         if f_error:
-            assert self.any(f), f_error(self)
+            assert self.any(f, star = star), f_error(self)
         else:
-            assert self.any(f)
+            assert self.any(f, star = star)
         return self
 
-    def filter_eq(self, v, f = None, eq = None, lazy = False):
+
+    @typing.overload
+    def filter(
+        self: iTuple[T],
+        f: typing.Optional[typing.Callable[[T], bool]],
+        *iterables: typing.Iterable,
+        lazy: typing.Literal[True],
+        star: bool = False,
+        **kwargs,
+    ) -> iLazy[T]: ...
+    
+    @typing.overload
+    def filter(
+        self: iTuple[T],
+        f: typing.Optional[typing.Callable[[T], bool]],
+        *iterables: typing.Iterable,
+        lazy: typing.Literal[False] = False,
+        star: bool = False,
+        **kwargs,
+    ) -> iTuple[T]: ...
+
+    def filter(
+        self: iTuple[T], 
+        f = None, 
+        *iterables: typing.Iterable,
+        eq = None, 
+        lazy: bool = False,
+        star: bool=False,
+        **kwargs,
+    ) -> typing.Union[iTuple[T], iLazy[T]]:
+        """
+        >>> iTuple.range(3).filter(lambda x: x > 1)
+        iTuple(2)
+        >>> iTuple.range(3).zip(range(3)).filter(lambda x, y: x > 1, star = True).mapstar(lambda x, y: x)
+        iTuple(2)
+        """
+        res: typing.Iterator[T]
+        if f is None and eq is not None:
+            f = functools.partial(operator.eq, eq)
+        if len(kwargs):
+            f = functools.partial(f, **kwargs)
+        if star or len(iterables):
+            res = itertools.compress(
+                self, 
+                self.map(f, *iterables, star=star)
+            )
+        else:
+            res = filter(f, self)
+        return iLazy(res) if lazy else type(self)(res)
+
+    def filter_eq(
+        self, eq, **kwargs
+    ):
         """
         >>> iTuple.range(3).filter_eq(1)
         iTuple(1)
         """
-        if f is None and eq is None:
-            res = filter(lambda x: x == v, self)
-        elif f is not None:
-            res = filter(lambda x: f(x) == v, self)
-        elif eq is not None:
-            res = filter(lambda x: eq(x, v), self)
-        elif f is not None and eq is not None:
-            res = filter(lambda x: eq(f(x), v), self)
-        else:
-            assert False
-        return res if lazy else type(self)(res)
+        return self.filter(eq=eq, **kwargs)
 
-    def filter(self, f, eq = None, lazy = False, **kws):
+    def filterstar(
+        self, f, eq = None, lazy = False, **kwargs
+    ):
         """
         >>> iTuple.range(3).filter(lambda x: x > 1)
         iTuple(2)
         """
-        # res = []
-        # for v in self.iter():
-        #     if f(v):
-        #         res.append(v)
-        return type(self)((
-            v for v in self.iter() if f(v, **kws)
-        ))
-        # return self.filter_eq(True, f = f, eq = eq, lazy = lazy)
-
-    def filterstar(self, f, eq = None, lazy = False, **kws):
-        """
-        >>> iTuple.range(3).filter(lambda x: x > 1)
-        iTuple(2)
-        """
-        # res = []
-        # for v in self.iter():
-        #     if f(v):
-        #         res.append(v)
-        return type(self)((
-            v for v in self.iter() if f(*v, **kws)
-        ))
+        return self.filter(f=f, eq=eq, lazy=lazy, **kwargs)
 
     def is_none(self):
         return self.filter(lambda v: v is None)
 
     def not_none(self):
         return self.filter(lambda v: v is not None)
+
+    # TODO: can probably use overloads?
 
     def i_min(
         self: iTuple[T], 
@@ -374,38 +425,56 @@ class iTuple(tuple, typing.Generic[T]):
             key = lambda _, v: v
         return self.enumerate().sortby(key).last()[0]
 
+    # 
+
+    @typing.overload
     def map(
-        self,
-        f,
-        *iterables,
-        at = None,
-        lazy = False,
+        self: iTuple,
+        f: typing.Callable[..., U],
+        *iterables: typing.Iterable,
+        lazy: typing.Literal[True],
+        star: bool = False,
         **kwargs,
-    ) -> iTuple:
+    ) -> iLazy[U]: ...
+    
+    @typing.overload
+    def map(
+        self: iTuple,
+        f: typing.Callable[..., U],
+        *iterables: typing.Iterable,
+        lazy: typing.Literal[False] = False,
+        star: bool = False,
+        **kwargs,
+    ) -> iTuple[U]: ...
+
+    def map(
+        self: iTuple,
+        f: typing.Callable[..., U],
+        *iterables,
+        star: bool = False,
+        lazy: bool = False,
+        **kwargs,
+    ) -> typing.Union[iTuple[U], iLazy[U]]:
         """
         >>> iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         """
+        # TODO: optional cls kwarg to customise return type
+        # for iTuple subclass
         if len(kwargs):
             f = functools.partial(f, **kwargs)
-        # if lazy and at is None:
-        #     return map(f, self, *iterables)
-        if at is None:
+        if not lazy and not star:
             return iTuple(map(f, self, *iterables))
-        elif isinstance(at, int):
-            return iTuple(map(
-                f, *iterables[:at], self, *iterables[at:]
-            ))
-        elif isinstance(at, str):
-            return iTuple(map(
-                f, *iterables, **{at: self}
-            ))
+        elif not lazy:
+            return iTuple(map(f, *self.zip(), *iterables))
+        elif not star:
+            return iLazy(map(f, self, *iterables))
         else:
-            assert False, at
+            return iLazy(map(f, *self.zip(), *iterables))
 
     # args, kwargs
-    def mapstar(self, f):
-        return iTuple(itertools.starmap(f, self))
+    def mapstar(self, f, *args, **kwargs):
+        return self.map(f, *args, star=True, **kwargs)
 
     def get(self, i):
         if isinstance(i, slice):
@@ -911,7 +980,17 @@ def pipe(f, obj, *args, at = None, discard=False, **kwargs):
 # ---------------------------------------------------------------
 
 if TYPE_CHECKING:
-    iTuple_int = iTuple[int]
-    ints: iTuple_int = iTuple.range(3).map(lambda v: v * 2)
+    
+    f = lambda v: v * 2
+
+    int_iter: iLazy[int] = iTuple.range(3).map(f, lazy = True)
+    int_itup: iTuple[int] = iTuple.range(3).map(f)
+
+    filt = lambda v: v < 3
+
+    int_iter = int_iter.eager().filter(filt, lazy = True)
+    int_itup = int_itup.filter(filt)
+
+    assert int_iter.eager() == int_itup
 
 # ---------------------------------------------------------------
