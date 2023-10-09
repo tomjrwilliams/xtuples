@@ -17,14 +17,23 @@ import operator
 # ---------------------------------------------------------------
 
 T = typing.TypeVar('T')
-U = typing.TypeVar('U')
+V = typing.TypeVar('V')
 
+U = typing.TypeVar('U')
 U0 = typing.TypeVar('U0')
 U1 = typing.TypeVar('U1')
 U2 = typing.TypeVar('U2')
 U3 = typing.TypeVar('U3')
 U4 = typing.TypeVar('U4')
 U5 = typing.TypeVar('U5')
+
+W = typing.TypeVar('W')
+W0 = typing.TypeVar('W0')
+W1 = typing.TypeVar('W1')
+W2 = typing.TypeVar('W2')
+W3 = typing.TypeVar('W3')
+W4 = typing.TypeVar('W4')
+W5 = typing.TypeVar('W5')
 
 if TYPE_CHECKING:
     from _typeshed import SupportsDunderLT, SupportsDunderGT
@@ -43,6 +52,23 @@ CT = typing.Union[
 
 # ---------------------------------------------------------------
 
+@typing.overload
+def lazy_res(
+    res: typing.Iterable[V], lazy: typing.Literal[True]
+) -> iLazy[V]: ...
+
+@typing.overload
+def lazy_res(
+    res: typing.Iterable[V], lazy: typing.Literal[False]
+) -> iTuple[V]: ...
+
+def lazy_res(res, lazy) -> iUnionV:
+    if not lazy:
+        return iTuple(res)
+    return iLazy(res)
+
+# ---------------------------------------------------------------
+
 class fStarN(typing.Protocol):
 
     def __call__(
@@ -55,46 +81,49 @@ class fStarN(typing.Protocol):
         u4: U4, 
         u5: U5, 
         *args: typing.Any
-    ) -> T: ...
+    ) -> V: ...
 
 @typing.overload
 def f_star(
-    f: typing.Callable[[U], T]
-) -> typing.Callable[[tuple[U]], T]: ...
+    f: typing.Callable[[U], V]
+) -> typing.Callable[[tuple[U]], V]: ...
 
 @typing.overload
 def f_star(
-    f: typing.Callable[[U, U0], T]
-) -> typing.Callable[[tuple[U, U0]], T]: ...
+    f: typing.Callable[[U, U0], V]
+) -> typing.Callable[[tuple[U, U0]], V]: ...
 
 @typing.overload
 def f_star(
-    f: typing.Callable[[U, U0, U1], T]
-) -> typing.Callable[[tuple[U, U0, U1]], T]: ...
+    f: typing.Callable[[U, U0, U1], V]
+) -> typing.Callable[[tuple[U, U0, U1]], V]: ...
 
 @typing.overload
 def f_star(
-    f: typing.Callable[[U, U0, U1, U2], T]
-) -> typing.Callable[[tuple[U, U0, U1, U2]], T]: ...
+    f: typing.Callable[[U, U0, U1, U2], V]
+) -> typing.Callable[[tuple[U, U0, U1, U2]], V]: ...
 
 @typing.overload
 def f_star(
-    f: typing.Callable[[U, U0, U1, U2, U3], T]
-) -> typing.Callable[[tuple[U, U0, U1, U2, U3]], T]: ...
+    f: typing.Callable[[U, U0, U1, U2, U3], V]
+) -> typing.Callable[[tuple[U, U0, U1, U2, U3]], V]: ...
 
 @typing.overload
 def f_star(
-    f: typing.Callable[[U, U0, U1, U2, U3, U4], T]
-) -> typing.Callable[[tuple[U, U0, U1, U2, U3, U4]], T]: ...
+    f: typing.Callable[[U, U0, U1, U2, U3, U4], V]
+) -> typing.Callable[[tuple[U, U0, U1, U2, U3, U4]], V]: ...
 
 @typing.overload
 def f_star(
     f: fStarN
-) -> typing.Callable[[tuple[U, U0, U1, U2, U3, U4, U5]], T]: ...
+) -> typing.Callable[[tuple[U, U0, U1, U2, U3, U4, U5]], V]: ...
 
 def f_star(f, **kwargs):
     def f_res(v_tuple):
-        return f(*v_tuple, **kwargs)
+        try:
+            return f(*v_tuple, **kwargs)
+        except:
+            assert False, (f, v_tuple, kwargs,)
     return f_res
     
 # ---------------------------------------------------------------
@@ -268,7 +297,9 @@ class iTuple(tuple, typing.Generic[T]):
         """
         return iTuple.range(self.len())
 
-    def append(self, value, *values):
+    def append(
+        self: iTuple[T], value: V, *values: V
+    ) -> iTuple[typing.Union[T, V]]:
         """
         >>> iTuple().append(1)
         iTuple(1)
@@ -283,7 +314,9 @@ class iTuple(tuple, typing.Generic[T]):
         """
         return iTuple((*self, value, *values,))
 
-    def prepend(self, value, *values):
+    def prepend(
+        self: iTuple[T], value: V, *values: V
+    ) -> iTuple[typing.Union[T, V]]:
         """
         >>> iTuple().prepend(1)
         iTuple(1)
@@ -297,99 +330,123 @@ class iTuple(tuple, typing.Generic[T]):
         iTuple(1, (2,), 0)
         """
         return iTuple((value, *values, *self,))
-
-
+    
     @typing.overload
     def zip(
         self: iTuple[T],
-        lazy=False,
+        *,
+        star:bool=False,
+        lazy:bool=False,
     ) -> iTuple[tuple]: ...
 
     @typing.overload
     def zip(
         self: iTuple[T],
-        itr_0: typing.Iterator[U0],
-        lazy=False,
+        itr_0: typing.Iterable[U0],
+        *,
+        star:bool=False,
+        lazy:bool=False,
     ) -> iTuple[tuple[T, U0]]: ...
     
     @typing.overload
     def zip(
         self: iTuple[T],
-        itr_0: typing.Iterator[U0],
-        itr_1: typing.Iterator[U1],
-        lazy=False,
+        itr_0: typing.Iterable[U0],
+        itr_1: typing.Iterable[U1],
+        *,
+        star:bool=False,
+        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1]]: ...
 
     @typing.overload
     def zip(
         self: iTuple[T],
-        itr_0: typing.Iterator[U0],
-        itr_1: typing.Iterator[U1],
-        itr_2: typing.Iterator[U2],
-        lazy=False,
+        itr_0: typing.Iterable[U0],
+        itr_1: typing.Iterable[U1],
+        itr_2: typing.Iterable[U2],
+        *,
+        star:bool=False,
+        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2]]: ...
 
     @typing.overload
     def zip(
         self: iTuple[T],
-        itr_0: typing.Iterator[U0],
-        itr_1: typing.Iterator[U1],
-        itr_2: typing.Iterator[U2],
-        itr_3: typing.Iterator[U3],
-        lazy=False,
+        itr_0: typing.Iterable[U0],
+        itr_1: typing.Iterable[U1],
+        itr_2: typing.Iterable[U2],
+        itr_3: typing.Iterable[U3],
+        *,
+        star:bool=False,
+        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3]]: ...
 
     @typing.overload
     def zip(
         self: iTuple[T],
-        itr_0: typing.Iterator[U0],
-        itr_1: typing.Iterator[U1],
-        itr_2: typing.Iterator[U2],
-        itr_3: typing.Iterator[U3],
-        itr_4: typing.Iterator[U4],
-        lazy=False,
+        itr_0: typing.Iterable[U0],
+        itr_1: typing.Iterable[U1],
+        itr_2: typing.Iterable[U2],
+        itr_3: typing.Iterable[U3],
+        itr_4: typing.Iterable[U4],
+        *,
+        star:bool=False,
+        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3, U4]]: ...
 
     @typing.overload
     def zip(
         self: iTuple[T],
-        itr_0: typing.Iterator[U0],
-        itr_1: typing.Iterator[U1],
-        itr_2: typing.Iterator[U2],
-        itr_3: typing.Iterator[U3],
-        itr_4: typing.Iterator[U4],
-        itr_5: typing.Iterator[U5],
-        lazy=False,
+        itr_0: typing.Iterable[U0],
+        itr_1: typing.Iterable[U1],
+        itr_2: typing.Iterable[U2],
+        itr_3: typing.Iterable[U3],
+        itr_4: typing.Iterable[U4],
+        itr_5: typing.Iterable[U5],
+        *,
+        star:bool=False,
+        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3, U4, U5]]: ...
 
     @typing.overload
     def zip(
         self: iTuple[T],
-        itr_0: typing.Iterator[U0],
-        itr_1: typing.Iterator[U1],
-        itr_2: typing.Iterator[U2],
-        itr_3: typing.Iterator[U3],
-        itr_4: typing.Iterator[U4],
-        itr_5: typing.Iterator[U5],
+        itr_0: typing.Iterable[U0],
+        itr_1: typing.Iterable[U1],
+        itr_2: typing.Iterable[U2],
+        itr_3: typing.Iterable[U3],
+        itr_4: typing.Iterable[U4],
+        itr_5: typing.Iterable[U5],
         *iters: typing.Iterator,
-        lazy=False,
+        star:bool=False,
+        lazy:bool=False,
     ) -> iTuple: ...
 
     def zip(
         self,
         *itrs,
-        lazy = False
+        star=False,
+        lazy = False,
     ):
         """
         >>> iTuple([[1, 1], [2, 2], [3, 3]]).zip()
         iTuple((1, 2, 3), (1, 2, 3))
         >>> iTuple([iTuple.range(3), iTuple.range(1, 4)]).zip()
         iTuple((0, 1), (1, 2), (2, 3))
-        >>> iTuple.range(3).zip(iTuple.range(1, 4))
+        >>> v0 = iTuple.range(3).zip(iTuple.range(1, 4))
+        >>> v0
         iTuple((0, 1), (1, 2), (2, 3))
+        >>> v0.zip(v0)
+        iTuple(((0, 1), (0, 1)), ((1, 2), (1, 2)), ((2, 3), (2, 3)))
+        >>> v0.zip(v0, star=True)
+        iTuple((0, 1, (0, 1)), (1, 2, (1, 2)), (2, 3, (2, 3)))
         """
         if len(itrs) == 0:
             res = zip(*self)
+        elif star:
+            res = zip(*self.zip(), *itrs)
+        else:
+            res = zip(self, *itrs)
         return iLazy(res) if lazy else iTuple(res)
 
     def flatten(self):
@@ -433,55 +490,73 @@ class iTuple(tuple, typing.Generic[T]):
             (value, *values, self)
         ))
 
-    def any(self, f = None, star = False):
-        if f is None:
-            return any(self)
-        elif star:
-            return any(self.map(f, star=True, lazy=True))
-        return any(self.map(f, lazy = True))
+    def any_f(
+        self, f: typing.Callable[..., bool], *, star = False
+    ):
+        return any(self.map(f, lazy = True, star=star))
+
+    def any(
+        self, 
+        f: typing.Optional[
+            typing.Callable[..., bool]
+        ] = None, 
+        *,
+        star = False
+    ):
+        if f is not None:
+            return self.any_f(f, star=star)
+        return any(self)
 
     def anystar(self, f):
         return any(self.mapstar(f))
     
-    def all(self, f = None, star = False):
-        if f is None:
-            return all(self)
-        elif star:
-            return all(self.map(lambda v: f(*v), lazy=True))
-        return all(self.map(f, lazy=True))
+    def all_f(
+        self, f: typing.Callable[..., bool], *, star = False
+    ):
+        return all(self.map(f, lazy = True, star=star))
 
-    def allstar(self, f):
+    def all(
+        self, 
+        f: typing.Optional[
+            typing.Callable[..., bool]
+        ] = None,
+        star: bool = False
+    ):
+        if f is not None:
+            return self.all_f(f, star=star)
+        return all(self)
+
+    def allstar(self, f: typing.Callable[..., bool]):
         return all(self.mapstar(f))
 
-    def assert_all(self, f, f_error = None, star = False):
+    def assert_all(self, f: typing.Callable[..., bool], f_error = None, star: bool = False):
         if f_error:
             assert self.all(f, star = star), f_error(self)
         else:
             assert self.all(f, star = star)
         return self
 
-    def assert_any(self, f, f_error = None, star = False):
+    def assert_any(self, f: typing.Callable[..., bool], f_error = None, star: bool = False):
         if f_error:
             assert self.any(f, star = star), f_error(self)
         else:
             assert self.any(f, star = star)
         return self
 
-
     @typing.overload
     def filter(
-        self: iTuple[T],
-        f: typing.Optional[typing.Callable[[T], bool]],
+        self: iTuple[T], 
+        f: typing.Callable[..., bool], 
         *iterables: typing.Iterable,
         lazy: typing.Literal[True],
         star: bool = False,
         **kwargs,
     ) -> iLazy[T]: ...
-    
+
     @typing.overload
     def filter(
-        self: iTuple[T],
-        f: typing.Optional[typing.Callable[[T], bool]],
+        self: iTuple[T], 
+        f: typing.Callable[..., bool], 
         *iterables: typing.Iterable,
         lazy: typing.Literal[False] = False,
         star: bool = False,
@@ -490,32 +565,44 @@ class iTuple(tuple, typing.Generic[T]):
 
     def filter(
         self: iTuple[T], 
-        f = None, 
+        f, 
         *iterables: typing.Iterable,
-        eq = None, 
-        lazy: bool = False,
-        star: bool=False,
+        lazy = False,
+        star =False,
         **kwargs,
-    ) -> typing.Union[iTuple[T], iLazy[T]]:
-        """
-        >>> iTuple.range(3).filter(lambda x: x > 1)
-        iTuple(2)
-        >>> iTuple.range(3).zip(range(3)).filter(lambda x, y: x > 1, star = True).mapstar(lambda x, y: x)
-        iTuple(2)
-        """
+    ):
+    
         res: typing.Iterator[T]
-        if f is None and eq is not None:
-            f = functools.partial(operator.eq, eq)
-        if len(kwargs):
-            f = functools.partial(f, **kwargs)
-        if star or len(iterables):
+
+        func: typing.Callable[..., bool] = (
+            functools.partial(f, **kwargs)
+            if len(kwargs)
+            else f
+        )
+
+        if star:
             res = itertools.compress(
-                self, 
-                self.map(f, *iterables, star=star)
+                self, self.map(func, star=star)
             )
+        elif len(iterables):
+            narrow = typing.cast(iTuple[typing.Iterable], self)
+            res_wide = narrow.star_filter(f, *iterables, **kwargs)
+            res = typing.cast(typing.Iterator[T], res_wide)
         else:
-            res = filter(f, self)
-        return iLazy(res) if lazy else type(self)(res)
+            res = filter(func, self)
+
+        return lazy_res(res, lazy)
+
+    def star_filter(
+        self: iTuple[typing.Iterable], 
+        f: typing.Callable[..., bool],
+        *iterables: typing.Iterable,
+        **kwargs,
+    ) -> typing.Iterator[typing.Iterable]:
+        return itertools.compress(
+            self, 
+            self.map(f, *iterables, star=True, **kwargs)
+        )
 
     def filter_eq(
         self, eq, **kwargs
@@ -524,16 +611,39 @@ class iTuple(tuple, typing.Generic[T]):
         >>> iTuple.range(3).filter_eq(1)
         iTuple(1)
         """
-        return self.filter(eq=eq, **kwargs)
+        f = functools.partial(operator.eq, eq)
+        return self.filter(f, **kwargs)
+
+    @typing.overload
+    def filterstar(
+        self,
+        f: typing.Callable[..., bool],
+        *,
+        lazy: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[T]: ...
+
+    @typing.overload
+    def filterstar(
+        self,
+        f: typing.Callable[..., bool],
+        *,
+        lazy: typing.Literal[False] = False,
+        **kwargs
+    ) -> iTuple[T]: ...
 
     def filterstar(
-        self, f, eq = None, lazy = False, **kwargs
+        self,
+        f: typing.Callable[..., bool],
+        *,
+        lazy = False,
+        **kwargs
     ):
         """
         >>> iTuple.range(3).filter(lambda x: x > 1)
         iTuple(2)
         """
-        return self.filter(f=f, eq=eq, lazy=lazy, **kwargs)
+        return self.filter(f, lazy=lazy, star=True, **kwargs)
 
     def is_none(self):
         return self.filter(lambda v: v is None)
@@ -563,56 +673,266 @@ class iTuple(tuple, typing.Generic[T]):
             key = lambda _, v: v
         return self.enumerate().sortby(key).last()[0]
 
-    # 
+    #
 
     @typing.overload
     def map(
-        self: iTuple,
-        f: typing.Callable[..., U],
+        self: iTuple[T],
+        f: typing.Callable[[T], V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[False] = False,
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[T],
+        f: typing.Callable[[T], V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[False] = False,
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    #
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U]],
+        f: typing.Callable[[U], V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U]],
+        f: typing.Callable[[U], V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0]],
+        f: typing.Callable[[U, U0], V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0]],
+        f: typing.Callable[[U, U0], V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1]],
+        f: typing.Callable[[U, U0, U1], V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1]],
+        f: typing.Callable[[U, U0, U1], V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1, U2]],
+        f: typing.Callable[[U, U0, U1, U2], V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1, U2]],
+        f: typing.Callable[[U, U0, U1, U2], V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1, U2, U3]],
+        f: typing.Callable[[U, U0, U1, U2, U3], V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1, U2, U3]],
+        f: typing.Callable[[U, U0, U1, U2, U3], V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
+        f: typing.Callable[[U, U0, U1, U2, U3, U4], V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
+        f: typing.Callable[[U, U0, U1, U2, U3, U4], V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
+        f: typing.Callable[[U, U0, U1], V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
+        f: typing.Callable[[U, U0, U1], V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    #
+
+    @typing.overload
+    def map(
+        self: iTuple[typing.Iterable],
+        f: typing.Callable[..., V],
+        *,
+        lazy: typing.Literal[True],
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[typing.Iterable],
+        f: typing.Callable[..., V],
+        *,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[typing.Iterable],
+        f: typing.Callable[..., V],
         *iterables: typing.Iterable,
         lazy: typing.Literal[True],
-        star: bool = False,
+        star: typing.Literal[True],
         **kwargs,
-    ) -> iLazy[U]: ...
-    
+    ) -> iLazy[V]: ...
+
+    @typing.overload
+    def map(
+        self: iTuple[typing.Iterable],
+        f: typing.Callable[..., V],
+        *iterables: typing.Iterable,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[True],
+        **kwargs,
+    ) -> iTuple[V]: ...
+
+    #
+
     @typing.overload
     def map(
         self: iTuple,
-        f: typing.Callable[..., U],
+        f: typing.Callable[..., V],
         *iterables: typing.Iterable,
-        lazy: typing.Literal[False] = False,
-        star: bool = False,
+        lazy: typing.Literal[True],
+        star: typing.Literal[False],
         **kwargs,
-    ) -> iTuple[U]: ...
+    ) -> iLazy[V]: ...
 
+    @typing.overload
     def map(
         self: iTuple,
-        f: typing.Callable[..., U],
+        f: typing.Callable[..., V],
         *iterables: typing.Iterable,
-        star: bool = False,
-        lazy: bool = False,
+        lazy: typing.Literal[False] = False,
+        star: typing.Literal[False],
         **kwargs,
-    ) -> typing.Union[iTuple[U], iLazy[U]]:
+    ) -> iTuple[V]: ...
+
+    def map(
+        self,
+        f,
+        *iterables: typing.Iterable,
+        lazy = False,
+        star = False,
+        **kwargs,
+    ):
         """
         >>> iTuple.range(3).map(lambda x: x * 2)
         iTuple(0, 2, 4)
         """
-        # TODO: optional cls kwarg to customise return type
-        # for iTuple subclass
+        z: iTuple[tuple]
+        # TODO: comprehensively benchmark all the star cases
+
         if len(kwargs):
             f = functools.partial(f, **kwargs)
-        if not lazy and not star:
-            return iTuple(map(f, self, *iterables))
-        elif not lazy:
-            return iTuple(map(f, *self.zip(), *iterables))
-        elif not star:
-            return iLazy(map(f, self, *iterables))
-        else:
-            return iLazy(map(f, *self.zip(), *iterables))
+
+        if not star:
+            return lazy_res(map(f, self, *iterables), lazy)
+    
+        # func: typing.Callable[..., V] = f_star(f)
+
+        if not len(iterables):
+            return lazy_res(map(f_star(f), self), lazy)
+
+        z = self.zip(*iterables, star=True)
+        return lazy_res(map(f_star(f), z), lazy)
 
     # args, kwargs
-    def mapstar(self, f, *args, **kwargs):
-        return self.map(f, *args, star=True, **kwargs)
+    def mapstar(self, f, *args, star = True, **kwargs):
+        return self.map(f, *args, star=star, **kwargs)
 
     def get(self, i):
         if isinstance(i, slice):
@@ -652,9 +972,10 @@ class iTuple(tuple, typing.Generic[T]):
     def chunkby(
         self, 
         f, 
-        lazy = False, 
+        lazy: bool = False, 
         keys = False,
         pipe= None,
+        throw=False,
     ):
         """
         >>> iTuple.range(3).chunkby(lambda x: x < 2)
@@ -675,8 +996,21 @@ class iTuple(tuple, typing.Generic[T]):
         else:
             return pipe(iTuple(g) for k, g in res)
 
+    def rechunk(self, keys = False):
+        f = lambda kg: kg[0]
+        res = itertools.groupby(self, key=f)
+        if keys:
+            return iTuple(
+                (k, iTuple(g for k, g in kgs).flatten(),)
+                for k, kgs in res
+            )
+        return iTuple(
+            iTuple(g for k, g in kgs).flatten()
+            for k, kgs in res
+        )
+
     def groupby(
-        self, f, lazy = False, keys = False, pipe = None
+        self, f, lazy: bool = False, keys = False, pipe = None
     ):
         """
         >>> iTuple.range(3).groupby(lambda x: x < 2)
@@ -689,18 +1023,11 @@ class iTuple(tuple, typing.Generic[T]):
         res = (
             self.chunkby(f, keys=True)
             .sortby(lambda kg: kg[0])
-            .chunkby(lambda kg: kg[0], keys = True)
-            .map(lambda k_kgs: (
-                k_kgs[0],
-                k_kgs[1].mapstar(lambda k, g: g).flatten(),
-            ))
+            .rechunk(keys = keys)
         )
         if pipe is None:
             pipe = iTuple
-        if keys:
-            return pipe((k, iTuple(g),) for k, g in res)
-        else:
-            return pipe(iTuple(g) for k, g in res)
+        return pipe(res)
 
     def first(self):
         """
@@ -735,7 +1062,7 @@ class iTuple(tuple, typing.Generic[T]):
     def pop(self, i):
         return self[:i] + self[i + 1:]
 
-    def first_where(self, f, default = None, star = False):
+    def first_where(self, f, default = None, star: bool = False):
         """
         >>> iTuple.range(3).first_where(lambda v: v > 0)
         1
@@ -750,7 +1077,7 @@ class iTuple(tuple, typing.Generic[T]):
                     return v
         return default
 
-    def last_where(self, f, default = None, star = False):
+    def last_where(self, f, default = None, star: bool = False):
         """
         >>> iTuple.range(3).last_where(lambda v: v < 2)
         1
@@ -776,7 +1103,7 @@ class iTuple(tuple, typing.Generic[T]):
         gen, 
         f, 
         n = None, 
-        star = False,
+        star: bool = False,
         iters=None,
         value=True,
     ):
@@ -803,7 +1130,7 @@ class iTuple(tuple, typing.Generic[T]):
         gen, 
         f, 
         n = None, 
-        star = False,
+        star: bool = False,
         iters=None,
         value=True,
     ):
@@ -841,7 +1168,7 @@ class iTuple(tuple, typing.Generic[T]):
         """
         return self[-n:]
 
-    def reverse(self, lazy = False):
+    def reverse(self, lazy: bool = False):
         """
         >>> iTuple.range(3).reverse()
         iTuple(2, 1, 0)
@@ -850,7 +1177,7 @@ class iTuple(tuple, typing.Generic[T]):
             return reversed(self)
         return type(self)(reversed(self))
 
-    def take_while(self, f, n = None, lazy = False):
+    def take_while(self, f, n = None, lazy: bool = False):
         """
         >>> iTuple.range(3).take_while(lambda v: v < 1)
         iTuple(0)
@@ -881,7 +1208,7 @@ class iTuple(tuple, typing.Generic[T]):
 
     # NOTE: from as in, starting from first true
     # versus above, which is until first false
-    def take_after(self, f, n = None, lazy = False):
+    def take_after(self, f, n = None, lazy: bool = False):
         """
         >>> iTuple.range(3).take_after(lambda v: v < 1)
         iTuple(1, 2)
@@ -940,7 +1267,7 @@ class iTuple(tuple, typing.Generic[T]):
                 yield v
         return type(self)(iter())
 
-    def argsort(self, f = lambda v: v, star = False, reverse = False):
+    def argsort(self, f = lambda v: v, star: bool = False, reverse = False):
         if star:
             f_sort = lambda i, v: f(*v)
         else:
@@ -959,7 +1286,7 @@ class iTuple(tuple, typing.Generic[T]):
             typing.Callable[..., CT],
         ],
         reverse = False,
-        star = False,
+        star: bool = False,
     ):
         """
         >>> iTuple.range(3).reverse().sort()
@@ -1008,66 +1335,66 @@ class iTuple(tuple, typing.Generic[T]):
     @typing.overload
     def foldcum(
         self: iTuple[T], 
-        f: typing.Callable[[U, T], U], 
-        initial: typing.Optional[U] = None, 
+        f: typing.Callable[[V, T], V], 
+        initial: typing.Optional[V] = None, 
         *,
         lazy: typing.Literal[True],
-        star = False,
+        star: bool = False,
         **kwargs,
-    ) -> iLazy[U]: ...
+    ) -> iLazy[V]: ...
     
     @typing.overload
     def foldcum(
         self: iTuple[T], 
-        f: typing.Callable[[U, T], U], 
-        initial: typing.Optional[U] = None, 
+        f: typing.Callable[[V, T], V], 
+        initial: typing.Optional[V] = None, 
         *,
         lazy: typing.Literal[False] = False,
-        star = False,
+        star: bool = False,
         **kwargs,
-    ) -> iTuple[U]: ...
+    ) -> iTuple[V]: ...
 
     @typing.overload
     def foldcum(
         self: iTuple, 
-        f: typing.Callable[..., U], 
-        initial: typing.Optional[U] = None, 
+        f: typing.Callable[..., V], 
+        initial: typing.Optional[V] = None, 
         *,
         lazy: typing.Literal[True],
         star: typing.Literal[True],
         **kwargs,
-    ) -> iLazy[U]: ...
+    ) -> iLazy[V]: ...
     
     @typing.overload
     def foldcum(
         self: iTuple, 
-        f: typing.Callable[..., U], 
-        initial: typing.Optional[U] = None, 
+        f: typing.Callable[..., V], 
+        initial: typing.Optional[V] = None, 
         *,
         lazy: typing.Literal[False] = False,
         star: typing.Literal[True],
         **kwargs,
-    ) -> iTuple[U]: ...
+    ) -> iTuple[V]: ...
 
     def foldcum(
         self,
         f,
-        initial: typing.Optional[U] = None, 
+        initial: typing.Optional[V] = None, 
         *,
         lazy: bool = False,
         star: bool = False,
         **kwargs,
-    ) -> typing.Union[iLazy[U], iTuple[U]]:
+    ) -> iUnionV:
         """
-        >>> iTuple.range(3).accumulate(lambda acc, v: v)
+        >>> iTuple.range(3).foldcum(lambda acc, v: v)
         iTuple(0, 1, 2)
-        >>> iTuple.range(3).accumulate(lambda acc, v: v, initial=0)
+        >>> iTuple.range(3).foldcum(lambda acc, v: v, initial=0)
         iTuple(0, 0, 1, 2)
-        >>> iTuple.range(3).accumulate(operator.add)
+        >>> iTuple.range(3).foldcum(operator.add)
         iTuple(0, 1, 3)
         """
-        func: typing.Callable[[U, T], U]
-        res: typing.Iterator[U]
+        func: typing.Callable[[V, T], V]
+        res: typing.Iterator[V]
         if len(kwargs):
             f = functools.partial(f, **kwargs)
         func = f if not star else lambda acc, v: f(acc, *v)
@@ -1079,31 +1406,31 @@ class iTuple(tuple, typing.Generic[T]):
     @typing.overload
     def fold(
         self: iTuple[T], 
-        f: typing.Callable[[U, T], U],
-        initial: typing.Optional[U] = None, 
+        f: typing.Callable[[V, T], V],
+        initial: typing.Optional[V] = None, 
         *,
         star: bool = False,
         **kwargs,
-    ) -> U: ...
+    ) -> V: ...
 
     @typing.overload
     def fold(
         self: iTuple, 
-        f: typing.Callable[..., U],
-        initial: typing.Optional[U] = None, 
+        f: typing.Callable[..., V],
+        initial: typing.Optional[V] = None, 
         *,
         star: typing.Literal[True],
         **kwargs,
-    ) -> U: ...
+    ) -> V: ...
 
     def fold(
         self,
         f,
-        initial: typing.Optional[U] = None, 
+        initial: typing.Optional[V] = None, 
         *,
         star: bool = False,
         **kwargs,
-    ) -> U:
+    ) -> V:
         """
         >>> iTuple.range(3).fold(lambda acc, v: v)
         2
@@ -1123,7 +1450,7 @@ class iTuple(tuple, typing.Generic[T]):
         ... )
         iTuple(4, 9, 25, 49)
         """
-        func: typing.Callable[[U, T], U]
+        func: typing.Callable[[V, T], V]
         if len(kwargs):
             f = functools.partial(f, **kwargs)
         func = f if not star else lambda acc, v: f(acc, *v)
@@ -1133,10 +1460,10 @@ class iTuple(tuple, typing.Generic[T]):
 
     def foldstar(
         self: iTuple[T], 
-        f: typing.Callable[..., U], 
-        initial: typing.Optional[U] = None, 
+        f: typing.Callable[..., V], 
+        initial: typing.Optional[V] = None, 
         **kwargs,
-    ) -> U:
+    ) -> V:
         """
         >>> iTuple.range(3).fold(lambda acc, v: v)
         2
@@ -1159,6 +1486,9 @@ class iTuple(tuple, typing.Generic[T]):
 
     # -----
 
+iUnionV = typing.Union[iLazy[V], iTuple[V]]
+iUnionT = typing.Union[iLazy[T], iTuple[T]]
+
 ituple = iTuple
 
 # ---------------------------------------------------------------
@@ -1175,5 +1505,19 @@ def pipe(f, obj, *args, at = None, discard=False, **kwargs):
     if not discard:
         return res
     return obj
+
+# ---------------------------------------------------------------
+
+if TYPE_CHECKING:
+    it: iTuple[int] = iTuple.range(3)
+
+    f: typing.Callable[[int], int] = lambda v: v * 2
+    it = it.map(f)
+
+    filt = lambda v: v < 3
+    it = it.filter(filt)
+
+    z = iTuple.range(3).zip(range(3))
+    # z.map(f) # should fail
 
 # ---------------------------------------------------------------
