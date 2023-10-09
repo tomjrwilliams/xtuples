@@ -43,6 +43,62 @@ CT = typing.Union[
 
 # ---------------------------------------------------------------
 
+class fStarN(typing.Protocol):
+
+    def __call__(
+        self, 
+        u: U, 
+        u0: U0, 
+        u1: U1, 
+        u2: U2, 
+        u3: U3, 
+        u4: U4, 
+        u5: U5, 
+        *args: typing.Any
+    ) -> T: ...
+
+@typing.overload
+def f_star(
+    f: typing.Callable[[U], T]
+) -> typing.Callable[[tuple[U]], T]: ...
+
+@typing.overload
+def f_star(
+    f: typing.Callable[[U, U0], T]
+) -> typing.Callable[[tuple[U, U0]], T]: ...
+
+@typing.overload
+def f_star(
+    f: typing.Callable[[U, U0, U1], T]
+) -> typing.Callable[[tuple[U, U0, U1]], T]: ...
+
+@typing.overload
+def f_star(
+    f: typing.Callable[[U, U0, U1, U2], T]
+) -> typing.Callable[[tuple[U, U0, U1, U2]], T]: ...
+
+@typing.overload
+def f_star(
+    f: typing.Callable[[U, U0, U1, U2, U3], T]
+) -> typing.Callable[[tuple[U, U0, U1, U2, U3]], T]: ...
+
+@typing.overload
+def f_star(
+    f: typing.Callable[[U, U0, U1, U2, U3, U4], T]
+) -> typing.Callable[[tuple[U, U0, U1, U2, U3, U4]], T]: ...
+
+@typing.overload
+def f_star(
+    f: fStarN
+) -> typing.Callable[[tuple[U, U0, U1, U2, U3, U4, U5]], T]: ...
+
+def f_star(f, **kwargs):
+    def f_res(v_tuple):
+        return f(*v_tuple, **kwargs)
+    return f_res
+    
+# ---------------------------------------------------------------
+
 tuple_getitem = tuple.__getitem__
 
 # ---------------------------------------------------------------
