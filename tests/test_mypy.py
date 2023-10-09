@@ -91,10 +91,6 @@ v = {}
 res: {} = v.map(f, star=True)
 """.format(f_type, f, it, res_type)
 
-# TODO: does map understand if int func is applied to strings?
-# ie. assert = Failure
-# including if the string is in the *iterables?
-
 def test_map():
     run_mypy(f_map("iTuple[int]"))
     run_mypy(f_map("int"), asserting=FAILURE)

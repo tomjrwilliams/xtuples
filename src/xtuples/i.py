@@ -330,21 +330,61 @@ class iTuple(tuple, typing.Generic[T]):
         iTuple(1, (2,), 0)
         """
         return iTuple((value, *values, *self,))
-    
+
+    # TODO: need a bunch mroe zip overloads
+
     @typing.overload
     def zip(
-        self: iTuple[T],
+        self: iTuple[tuple[U, U0]],
         *,
-        star:bool=False,
+        star: typing.Literal[True],
+        lazy:bool=False,
+    ) -> tuple[
+        typing.Iterable[U],
+        typing.Iterable[U0]
+    ]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0]],
+        itr_0: typing.Iterable[W0],
+        *,
+        star: typing.Literal[True],
+        lazy:bool=False,
+    ) -> iTuple[tuple[U, U0, W0]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple],
+        itr_0: typing.Iterable[W0],
+        itr_1: typing.Iterable[W1],
+        *iterables: typing.Iterable,
+        star: typing.Literal[True],
         lazy:bool=False,
     ) -> iTuple[tuple]: ...
 
     @typing.overload
     def zip(
         self: iTuple[T],
+        *,
+        star: typing.Literal[False] = False,
+        lazy:bool=False,
+    ) -> iTuple[tuple]: ...
+
+    # @typing.overload
+    # def zip(
+    #     self: iTuple[tuple],
+    #     *,
+    #     star: typing.Literal[False],
+    #     lazy:bool=False,
+    # ) -> tuple[typing.Iterable]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[T],
         itr_0: typing.Iterable[U0],
         *,
-        star:bool=False,
+        star: typing.Literal[False] = False,
         lazy:bool=False,
     ) -> iTuple[tuple[T, U0]]: ...
     
@@ -354,7 +394,7 @@ class iTuple(tuple, typing.Generic[T]):
         itr_0: typing.Iterable[U0],
         itr_1: typing.Iterable[U1],
         *,
-        star:bool=False,
+        star: typing.Literal[False] = False,
         lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1]]: ...
 
@@ -365,7 +405,7 @@ class iTuple(tuple, typing.Generic[T]):
         itr_1: typing.Iterable[U1],
         itr_2: typing.Iterable[U2],
         *,
-        star:bool=False,
+        star: typing.Literal[False] = False,
         lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2]]: ...
 
@@ -377,7 +417,7 @@ class iTuple(tuple, typing.Generic[T]):
         itr_2: typing.Iterable[U2],
         itr_3: typing.Iterable[U3],
         *,
-        star:bool=False,
+        star: typing.Literal[False] = False,
         lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3]]: ...
 
@@ -390,7 +430,7 @@ class iTuple(tuple, typing.Generic[T]):
         itr_3: typing.Iterable[U3],
         itr_4: typing.Iterable[U4],
         *,
-        star:bool=False,
+        star: typing.Literal[False] = False,
         lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3, U4]]: ...
 
@@ -404,7 +444,7 @@ class iTuple(tuple, typing.Generic[T]):
         itr_4: typing.Iterable[U4],
         itr_5: typing.Iterable[U5],
         *,
-        star:bool=False,
+        star: typing.Literal[False] = False,
         lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3, U4, U5]]: ...
 
@@ -418,9 +458,12 @@ class iTuple(tuple, typing.Generic[T]):
         itr_4: typing.Iterable[U4],
         itr_5: typing.Iterable[U5],
         *iters: typing.Iterator,
-        star:bool=False,
+        star: typing.Literal[False] = False,
         lazy:bool=False,
     ) -> iTuple: ...
+
+    # TODO: need more overloads, unpacking the inside of self
+    # where star / no iters provided
 
     def zip(
         self,
@@ -927,7 +970,7 @@ class iTuple(tuple, typing.Generic[T]):
         if not len(iterables):
             return lazy_res(map(f_star(f), self), lazy)
 
-        z = self.zip(*iterables, star=True)
+        z = self.zip(*iterables, star=star)
         return lazy_res(map(f_star(f), z), lazy)
 
     # args, kwargs
@@ -1519,5 +1562,16 @@ if TYPE_CHECKING:
 
     z = iTuple.range(3).zip(range(3))
     # z.map(f) # should fail
+
+    it_n: iTuple[tuple[int, int, int]] = (
+        iTuple.range(3)
+        .zip(range(3))
+        .zip(range(3), star=True)
+    )
+    it_n_: iTuple[tuple[tuple[int, int], int]] = (
+        iTuple.range(3)
+        .zip(range(3))
+        .zip(range(3))
+    )
 
 # ---------------------------------------------------------------
