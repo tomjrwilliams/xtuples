@@ -115,6 +115,24 @@ def test_map():
     )
     run_mypy(
         f_map_n_star(
+            "typing.Callable[[int], int]",
+            "lambda v0, v1: v0 * 2",
+            "iTuple[int]",
+            "iTuple.range(3).zip(range(3))"
+        ),
+        asserting=FAILURE
+    )
+    run_mypy(
+        f_map_n(
+            "typing.Callable[[int, int], int]",
+            "lambda v0, v1: v0 * 2",
+            "iTuple[int]",
+            "iTuple.range(3).zip(range(3))"
+        ),
+        asserting=FAILURE
+    )
+    run_mypy(
+        f_map_n_star(
             "typing.Callable[..., int]",
             "lambda v0, v1: v0 * 2",
             "iTuple[int]",
