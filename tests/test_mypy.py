@@ -69,6 +69,34 @@ def run_mypy(s: str, asserting = None):
     
 # ---------------------------------------------------------------
 
+f_zip = lambda rng_0_type, rng_1_type, v: """
+i_rng_0: {}
+i_rng_1: {}
+
+i_rngs = {}
+i_rng_0, i_rng_1 = i_rngs
+""".format(rng_0_type, rng_1_type, v)
+
+def test_zip():
+    z = "iTuple.range(3).zip(range(3)).zip()"
+    run_mypy(f_zip(
+        "typing.Iterable[int]",
+        "typing.Iterable[int]",
+        z
+    ))
+    run_mypy(f_zip(
+        "typing.Iterable[str]",
+        "typing.Iterable[int]",
+        z
+    ), asserting=FAILURE)
+    run_mypy(f_zip(
+        "int",
+        "typing.Iterable[int]",
+        z
+    ), asserting=FAILURE)
+
+# ---------------------------------------------------------------
+
 f_map = lambda res_type: """
 f: typing.Callable[..., int] = lambda v: v * 2
 res: {} = iTuple.range(3).map(f, lazy=False)

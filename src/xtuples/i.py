@@ -331,14 +331,14 @@ class iTuple(tuple, typing.Generic[T]):
         """
         return iTuple((value, *values, *self,))
 
-    # star - no iterables
+    # no iterables (so star doesn't matter)
 
     # TODO: check
     @typing.overload
     def zip(
         self: iTuple[tuple[U]],
         *,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
     ) -> tuple[
         typing.Iterable[U],
     ]: ...
@@ -347,7 +347,7 @@ class iTuple(tuple, typing.Generic[T]):
     def zip(
         self: iTuple[tuple[U, U0]],
         *,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
     ) -> tuple[
         typing.Iterable[U],
         typing.Iterable[U0]
@@ -357,7 +357,7 @@ class iTuple(tuple, typing.Generic[T]):
     def zip(
         self: iTuple[tuple[U, U0, U1]],
         *,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
     ) -> tuple[
         typing.Iterable[U],
         typing.Iterable[U0],
@@ -368,7 +368,7 @@ class iTuple(tuple, typing.Generic[T]):
     def zip(
         self: iTuple[tuple[U, U0, U1, U2]],
         *,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
     ) -> tuple[
         typing.Iterable[U],
         typing.Iterable[U0],
@@ -380,7 +380,7 @@ class iTuple(tuple, typing.Generic[T]):
     def zip(
         self: iTuple[tuple[U, U0, U1, U2, U3]],
         *,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
     ) -> tuple[
         typing.Iterable[U],
         typing.Iterable[U0],
@@ -393,7 +393,7 @@ class iTuple(tuple, typing.Generic[T]):
     def zip(
         self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
         *,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
     ) -> tuple[
         typing.Iterable[U],
         typing.Iterable[U0],
@@ -407,7 +407,7 @@ class iTuple(tuple, typing.Generic[T]):
     def zip(
         self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
         *,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
     ) -> tuple[
         typing.Iterable[U],
         typing.Iterable[U0],
@@ -887,13 +887,6 @@ class iTuple(tuple, typing.Generic[T]):
     @typing.overload
     def zip(
         self: iTuple[T],
-        *,
-        star: typing.Literal[False] = False,
-    ) -> iTuple[tuple]: ...
-
-    @typing.overload
-    def zip(
-        self: iTuple[T],
         itr_0: typing.Iterable[U0],
         *,
         star: typing.Literal[False] = False,
@@ -954,6 +947,8 @@ class iTuple(tuple, typing.Generic[T]):
         star: typing.Literal[False] = False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3, U4, U5]]: ...
 
+    # no star - fall through
+
     @typing.overload
     def zip(
         self: iTuple[T],
@@ -987,10 +982,10 @@ class iTuple(tuple, typing.Generic[T]):
         >>> v0.zip(v0, star=True)
         iTuple((0, 1, (0, 1)), (1, 2, (1, 2)), (2, 3, (2, 3)))
         """
-        if len(itrs) == 0:
+        if star:
+            res = zip(*zip(*self), *itrs)
+        elif len(itrs) == 0:
             res = zip(*self)
-        elif star:
-            res = zip(*self.zip(), *itrs)
         else:
             res = zip(self, *itrs)
         return iTuple(res)
@@ -2077,10 +2072,11 @@ if TYPE_CHECKING:
         .zip(range(3))
     )
     
+    # i_rng_0: typing.Iterable[str] # should error
     i_rng_0: typing.Iterable[int]
     i_rng_1: typing.Iterable[int]
 
-    i_rngs: tuple = iTuple.range(3).zip(range(3)).zip()
+    i_rngs = iTuple.range(3).zip(range(3)).zip()
     i_rng_0, i_rng_1 = i_rngs
 
 # ---------------------------------------------------------------
