@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 
 # ---------------------------------------------------------------
 
-import collections
 import itertools
 import functools
 
@@ -166,7 +165,7 @@ class iTuple(tuple, typing.Generic[T]):
             v = args[0]
             if isinstance(v, cls):
                 return v
-            elif not isinstance(v, collections.Iterable):
+            elif not isinstance(v, typing.Iterable):
                 return ().__new__(cls, (v,))
         return super().__new__(cls, *args)
 
