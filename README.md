@@ -69,7 +69,7 @@ class Has_X(typing.Protocol):
 def f(self: Has_X) -> int:
     return self.x + 1
 
-@xt.nTuple.decorate(f = reusable_f)
+@xt.nTuple.decorate(f = f)
 class A(typing.NamedTuple):
 
     x: int
@@ -77,7 +77,7 @@ class A(typing.NamedTuple):
 
     def f(self) -> int: ...
 
-@xt.nTuple.decorate(f = reusable_f)
+@xt.nTuple.decorate(f = f)
 class B(typing.NamedTuple):
 
     x: int
