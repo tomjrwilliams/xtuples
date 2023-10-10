@@ -72,9 +72,7 @@ def run_mypy(s: str, asserting = None):
 f_zip = lambda rng_0_type, rng_1_type, v: """
 i_rng_0: {}
 i_rng_1: {}
-
-i_rngs = {}
-i_rng_0, i_rng_1 = i_rngs
+i_rng_0, i_rng_1 = {}
 """.format(rng_0_type, rng_1_type, v)
 
 def test_zip():
