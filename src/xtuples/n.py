@@ -157,17 +157,25 @@ if typing.TYPE_CHECKING:
     class Has_X(typing.Protocol):
         x: int
 
-    def reusable_f(self: Has_X) -> int:
+    def f(self: Has_X) -> int:
         return self.x + 1
 
-    @nTuple.decorate(f = reusable_f)
-    class Example_NT(typing.NamedTuple):
+    @nTuple.decorate(f = f)
+    class Example_A(typing.NamedTuple):
 
         x: int
 
-        def f(self: Example_NT) -> int: ...
+        def f(self: Example_A) -> int: ...
 
-    nt: Example_NT = Example_NT(1)
+    @nTuple.decorate(f = f)
+    class Example_B(typing.NamedTuple):
+
+        x: int
+        y: float
+
+        def f(self: Example_B) -> int: ...
+
+    nt: Example_A = Example_A(1)
     i: int = nt.f()
 
 # ---------------------------------------------------------------

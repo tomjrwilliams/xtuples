@@ -52,6 +52,10 @@ def primes_under(x):
 sq_primes_under_10 = primes_under(10).map(lambda v: v ** 2)
 ```
 
+iTuple has type annotations for a reasonable range of overloads of common methods, such that mypy should, without requiring explicit annotations, be able to track types through methods like zip(), map(), filter(), and so on.
+
+See ./tests/test_mypy.py for particular examples.
+
 ### nTuple
 
 The idea with #2 is to ease method re-use between, and interface definitions on, NamedTuples, where rather than inheriting methods, we inject them in (on top of a type signature stub).
