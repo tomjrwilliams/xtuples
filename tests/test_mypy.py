@@ -4,7 +4,8 @@ import os
 import tempfile
 import subprocess
 
-import PATHS
+import pathlib
+XTUPLES = str(pathlib.Path("./src").resolve()).replace("\\", "/")
 
 # ---------------------------------------------------------------
 
@@ -24,7 +25,7 @@ from xtuples import iTuple, nTuple, iLazy
 
 import xtuples as xt
 
-""".format(PATHS.XTUPLES) + s
+""".format(XTUPLES) + s
 
 def run_mypy(s: str, asserting = None):
     try:
@@ -43,7 +44,7 @@ def run_mypy(s: str, asserting = None):
             stdout = subprocess.PIPE,
             stderr = subprocess.STDOUT,
             text = True,
-            env=dict(os.environ, MYPYPATH=PATHS.XTUPLES)
+            env=dict(os.environ, MYPYPATH=XTUPLES)
         ).stdout
     finally:
         os.remove(f.name)
