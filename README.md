@@ -29,7 +29,7 @@ import xtuples as xt
 xtuples (xt) provides:
 
 - #1: xt.iTuple: a bunch of (primarily) itertools / functools boilerplate, wrapped into a tuple subclass.
-- #2: xt.nTuple.decorate: a decorator to inject .pipe(), .partial(), and a dict of any user defined methodsm, into a NamedTuple.
+- #2: xt.nTuple.decorate: a decorator to inject .pipe(), .partial(), and a dict of any user defined methods, into a NamedTuple.
 
 ### iTuple
 
