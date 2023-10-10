@@ -150,22 +150,25 @@ class _Example(typing.NamedTuple):
         ...
 
 
-# ---------------------------------------------------------------
+if typing.TYPE_CHECKING:
+    
+    # NOTE: from the README
 
-# NOTE: from the README
+    class Has_X(typing.Protocol):
+        x: int
 
-class Has_X(typing.Protocol):
-    x: int
+    def reusable_f(self: Has_X) -> int:
+        return self.x + 1
 
-def reusable_f(self: Has_X) -> int:
-    return self.x + 1
+    @nTuple.decorate(f = reusable_f)
+    class Example_NT(typing.NamedTuple):
 
-@nTuple.decorate(f = reusable_f)
-class Example_NamedTuple(typing.NamedTuple):
+        x: int
 
-    x: int
+        def f(self: Example_NT) -> int: ...
 
-    def f(self) -> int: ...
+    nt: Example_NT = Example_NT(1)
+    i: int = nt.f()
 
 # ---------------------------------------------------------------
 

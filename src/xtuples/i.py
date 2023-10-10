@@ -1,7 +1,7 @@
 
 from __future__ import annotations
 
-import enum
+import abc
 import typing
 from typing import TYPE_CHECKING
 
@@ -69,8 +69,9 @@ def lazy_res(res, lazy) -> iUnionV:
 
 # ---------------------------------------------------------------
 
-class fStarN(typing.Protocol):
+class fStarN(typing.Generic[V]):
 
+    @abc.abstractmethod
     def __call__(
         self, 
         u: U, 
