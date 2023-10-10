@@ -3,20 +3,24 @@ import inspect
 import itertools
 import datetime
 
-from pympler.asizeof import asizeof
+from pympler.asizeof import asizeof  # type: ignore
 
 # ---------------------------------------------------------------
 
 def lineno(n_back = 0):
-    frame = inspect.currentframe().f_back
-    for _ in range(n_back):
+    frame = inspect.currentframe()
+    for _ in range(n_back + 1):
+        assert frame is not None
         frame = frame.f_back
+    assert frame is not None
     return frame.f_lineno
 
 def outer_func_name(n_back = 0):
-    frame = inspect.currentframe().f_back
-    for _ in range(n_back):
+    frame = inspect.currentframe()
+    for _ in range(n_back + 1):
+        assert frame is not None
         frame = frame.f_back
+    assert frame is not None
     return frame.f_code.co_name
 
 # ---------------------------------------------------------------
@@ -32,7 +36,7 @@ def time_funcs(*fs, iters = 10e4, max_time = 10e6):
     n = len(fs)
     f_times_mems = itertools.cycle(zip(
         range(n), fs, [[] for _ in fs], [[] for _ in fs]
-    ))
+    )) # type: ignore
 
     runs = int(iters / 100)
     start = datetime.datetime.now()
@@ -65,16 +69,13 @@ def time_funcs(*fs, iters = 10e4, max_time = 10e6):
     while i < n - 1:
         i, _, _, _ = next(f_times_mems)
 
-    times = tuple(
+    return (incr,) + tuple(
         (sum(times) / len(times)) / 1000
         for _, (_, _, times, _) in zip(range(n), f_times_mems)
-    )
-    mems = tuple(
+    ) + tuple(
         (sum(mems) / len(mems)) / 1000
         for _, (_, _, _, mems) in zip(range(n), f_times_mems)
     )
-
-    return (incr,) + times + mems
 
     # in milliseconds
 
