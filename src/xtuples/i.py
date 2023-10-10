@@ -331,14 +331,23 @@ class iTuple(tuple, typing.Generic[T]):
         """
         return iTuple((value, *values, *self,))
 
-    # TODO: need a bunch mroe zip overloads
+    # star - no iterables
+
+    # TODO: check
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U]],
+        *,
+        star: typing.Literal[True],
+    ) -> tuple[
+        typing.Iterable[U],
+    ]: ...
 
     @typing.overload
     def zip(
         self: iTuple[tuple[U, U0]],
         *,
         star: typing.Literal[True],
-        lazy:bool=False,
     ) -> tuple[
         typing.Iterable[U],
         typing.Iterable[U0]
@@ -346,38 +355,541 @@ class iTuple(tuple, typing.Generic[T]):
 
     @typing.overload
     def zip(
-        self: iTuple[tuple[U, U0]],
-        itr_0: typing.Iterable[W0],
+        self: iTuple[tuple[U, U0, U1]],
         *,
         star: typing.Literal[True],
-        lazy:bool=False,
-    ) -> iTuple[tuple[U, U0, W0]]: ...
+    ) -> tuple[
+        typing.Iterable[U],
+        typing.Iterable[U0],
+        typing.Iterable[U1],
+    ]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2]],
+        *,
+        star: typing.Literal[True],
+    ) -> tuple[
+        typing.Iterable[U],
+        typing.Iterable[U0],
+        typing.Iterable[U1],
+        typing.Iterable[U2],
+    ]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3]],
+        *,
+        star: typing.Literal[True],
+    ) -> tuple[
+        typing.Iterable[U],
+        typing.Iterable[U0],
+        typing.Iterable[U1],
+        typing.Iterable[U2],
+        typing.Iterable[U3],
+    ]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
+        *,
+        star: typing.Literal[True],
+    ) -> tuple[
+        typing.Iterable[U],
+        typing.Iterable[U0],
+        typing.Iterable[U1],
+        typing.Iterable[U2],
+        typing.Iterable[U3],
+        typing.Iterable[U4],
+    ]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
+        *,
+        star: typing.Literal[True],
+    ) -> tuple[
+        typing.Iterable[U],
+        typing.Iterable[U0],
+        typing.Iterable[U1],
+        typing.Iterable[U2],
+        typing.Iterable[U3],
+        typing.Iterable[U4],
+        typing.Iterable[U5],
+    ]: ...
+
+    # star - one iter
+
+    # TODO: check
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U]],
+        itr_0: typing.Iterable[W],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[U, W]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0]],
+        itr_0: typing.Iterable[W],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[U, U0, W]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1]],
+        itr_0: typing.Iterable[W],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[U, U0, U1, W]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2]],
+        itr_0: typing.Iterable[W],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[U, U0, U1, U2, W]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3]],
+        itr_0: typing.Iterable[W],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[U, U0, U1, U2, U3, W]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
+        itr_0: typing.Iterable[W],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[U, U0, U1, U2, U3, U4, W]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
+        itr_0: typing.Iterable[W],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[U, U0, U1, U2, U3, U4, U5, W]]: ...
+
+    # star - two iter
+
+    # TODO: check
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, W, W0
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, W, W0
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, W, W0
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, W, W0
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, W, W0
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, U4, W, W0
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, U4, U5, W, W0
+        #
+    ]]: ...
+
+    # star - three iter
+
+    # TODO: check
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, W, W0, W1
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, W, W0, W1
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, W, W0, W1
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, W, W0, W1
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, W, W0, W1
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, U4, W, W0, W1
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, U4, U5, W, W0, W1
+        #
+    ]]: ...
+
+    # star - four iter
+
+    # TODO: check
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, W, W0, W1, W2
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, W, W0, W1, W2
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, W, W0, W1, W2
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, W, W0, W1, W2
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, W, W0, W1, W2
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, U4, W, W0, W1, W2
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, U4, U5, W, W0, W1, W2
+        #
+    ]]: ...
+
+    # star - five iter
+
+    # TODO: check
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        itr_4: typing.Iterable[W3],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, W, W0, W1, W2, W3
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        itr_4: typing.Iterable[W3],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, W, W0, W1, W2, W3
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        itr_4: typing.Iterable[W3],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, W, W0, W1, W2, W3
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        itr_4: typing.Iterable[W3],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, W, W0, W1, W2, W3
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        itr_4: typing.Iterable[W3],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, W, W0, W1, W2, W3
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        itr_4: typing.Iterable[W3],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, U4, W, W0, W1, W2, W3
+        #
+    ]]: ...
+
+    @typing.overload
+    def zip(
+        self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
+        itr_0: typing.Iterable[W],
+        itr_1: typing.Iterable[W0],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W2],
+        itr_4: typing.Iterable[W3],
+        *,
+        star: typing.Literal[True],
+    ) -> iTuple[tuple[
+        U, U0, U1, U2, U3, U4, U5, W, W0, W1, W2, W3
+        #
+    ]]: ...
+
+    # star - fall through
 
     @typing.overload
     def zip(
         self: iTuple[tuple],
         itr_0: typing.Iterable[W0],
         itr_1: typing.Iterable[W1],
+        itr_2: typing.Iterable[W1],
+        itr_3: typing.Iterable[W1],
+        itr_4: typing.Iterable[W1],
+        itr_5: typing.Iterable[W1],
         *iterables: typing.Iterable,
         star: typing.Literal[True],
-        lazy:bool=False,
     ) -> iTuple[tuple]: ...
+
+    # no star
 
     @typing.overload
     def zip(
         self: iTuple[T],
         *,
         star: typing.Literal[False] = False,
-        lazy:bool=False,
     ) -> iTuple[tuple]: ...
-
-    # @typing.overload
-    # def zip(
-    #     self: iTuple[tuple],
-    #     *,
-    #     star: typing.Literal[False],
-    #     lazy:bool=False,
-    # ) -> tuple[typing.Iterable]: ...
 
     @typing.overload
     def zip(
@@ -385,7 +897,6 @@ class iTuple(tuple, typing.Generic[T]):
         itr_0: typing.Iterable[U0],
         *,
         star: typing.Literal[False] = False,
-        lazy:bool=False,
     ) -> iTuple[tuple[T, U0]]: ...
     
     @typing.overload
@@ -395,7 +906,6 @@ class iTuple(tuple, typing.Generic[T]):
         itr_1: typing.Iterable[U1],
         *,
         star: typing.Literal[False] = False,
-        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1]]: ...
 
     @typing.overload
@@ -406,7 +916,6 @@ class iTuple(tuple, typing.Generic[T]):
         itr_2: typing.Iterable[U2],
         *,
         star: typing.Literal[False] = False,
-        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2]]: ...
 
     @typing.overload
@@ -418,7 +927,6 @@ class iTuple(tuple, typing.Generic[T]):
         itr_3: typing.Iterable[U3],
         *,
         star: typing.Literal[False] = False,
-        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3]]: ...
 
     @typing.overload
@@ -431,7 +939,6 @@ class iTuple(tuple, typing.Generic[T]):
         itr_4: typing.Iterable[U4],
         *,
         star: typing.Literal[False] = False,
-        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3, U4]]: ...
 
     @typing.overload
@@ -445,7 +952,6 @@ class iTuple(tuple, typing.Generic[T]):
         itr_5: typing.Iterable[U5],
         *,
         star: typing.Literal[False] = False,
-        lazy:bool=False,
     ) -> iTuple[tuple[T, U0, U1, U2, U3, U4, U5]]: ...
 
     @typing.overload
@@ -459,17 +965,14 @@ class iTuple(tuple, typing.Generic[T]):
         itr_5: typing.Iterable[U5],
         *iters: typing.Iterator,
         star: typing.Literal[False] = False,
-        lazy:bool=False,
     ) -> iTuple: ...
 
-    # TODO: need more overloads, unpacking the inside of self
-    # where star / no iters provided
+    # implementation
 
     def zip(
         self,
         *itrs,
         star=False,
-        lazy = False,
     ):
         """
         >>> iTuple([[1, 1], [2, 2], [3, 3]]).zip()
@@ -490,7 +993,7 @@ class iTuple(tuple, typing.Generic[T]):
             res = zip(*self.zip(), *itrs)
         else:
             res = zip(self, *itrs)
-        return iLazy(res) if lazy else iTuple(res)
+        return iTuple(res)
 
     def flatten(self):
         """
@@ -1573,5 +2076,11 @@ if TYPE_CHECKING:
         .zip(range(3))
         .zip(range(3))
     )
+    
+    i_rng_0: typing.Iterable[int]
+    i_rng_1: typing.Iterable[int]
+
+    i_rngs: tuple = iTuple.range(3).zip(range(3)).zip()
+    i_rng_0, i_rng_1 = i_rngs
 
 # ---------------------------------------------------------------
