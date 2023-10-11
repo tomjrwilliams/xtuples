@@ -1026,7 +1026,7 @@ class iTuple(tuple, typing.Generic[T]):
 
     @typing.overload
     def flatten(self: iTuple[typing.Iterable[T]]) -> iTuple[T]: ...
-    
+
     @typing.overload
     def flatten(self: iTuple[list[T]]) -> iTuple[T]: ...
 
@@ -1047,7 +1047,7 @@ class iTuple(tuple, typing.Generic[T]):
     ):
         """
         >>> int_or_list_int = typing.Union[int, list[int]]
-        >>> it: iTuple[int_or_list_int] = iTuple.one(1)
+        >>> it: iTuple[int_or_list_int] = iTuple.one(0)
         >>> it.extend((1,))
         iTuple(0, 1)
         >>> it.extend([1])
@@ -1070,7 +1070,7 @@ class iTuple(tuple, typing.Generic[T]):
     ):
         """
         >>> int_or_list_int = typing.Union[int, list[int]]
-        >>> it: iTuple[int_or_list_int] = iTuple.one(1)
+        >>> it: iTuple[int_or_list_int] = iTuple.one(0)
         >>> it.pretend((1,))
         iTuple(1, 0)
         >>> it.pretend([1])
@@ -1950,6 +1950,7 @@ class iTuple(tuple, typing.Generic[T]):
         >>> iTuple.range(3).take(2)
         iTuple(0, 1)
         >>> iTuple.range(3).take([1, 2])
+        iTuple(1, 2)
         """
         if isinstance(n, int):
             return self[:n]
@@ -1977,12 +1978,13 @@ class iTuple(tuple, typing.Generic[T]):
         >>> iTuple.range(3).tail(2)
         iTuple(1, 2)
         >>> iTuple.range(3).tail([1, 2])
+        iTuple(1, 0)
         """
         if isinstance(n, int):
             return self[-n:]
         elif isinstance(n, slice):
             return self[slice(-n.stop, -n.start, n.step)]
-        return iTuple(self[-i] for i in n)
+        return iTuple(self[-(i+1)] for i in n)
 
     def reverse(self: iTuple[T], lazy: bool = False) -> iTuple[T]:
         """
