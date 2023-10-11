@@ -169,7 +169,7 @@ class iTuple(tuple, typing.Generic[T]):
                 return ().__new__(cls, (v,))
         return super().__new__(cls, *args)
 
-    def __repr__(self):
+    def __repr__(self: iTuple[T]) -> str:
         """
         >>> iTuple()
         iTuple()
@@ -188,20 +188,28 @@ class iTuple(tuple, typing.Generic[T]):
     # -----
 
     @classmethod
-    def empty(cls):
+    def empty(cls) -> iTuple[T]:
         return cls(tuple())
 
     @classmethod
-    def one(cls: typing.Type[iTuple], v: T) -> iTuple[T]:
+    def one(cls, v: T) -> iTuple[T]:
         return cls((v,))
 
     @classmethod
-    def none(cls, n):
+    def none(cls, n: int) -> iTuple[None]:
         """
         >>> iTuple.none(3)
         iTuple(None, None, None)
         """
-        return cls((None for _ in range(n)))
+        return iTuple(tuple(None for _ in range(n)))
+
+    @typing.overload
+    @classmethod
+    def range(cls, stop: int) -> iTuple[int]: ...
+
+    @typing.overload
+    @classmethod
+    def range(cls, start: int, stop: int, step: int = 1): ...
 
     @classmethod
     def range(cls, *args, **kwargs) -> iTuple[int]:
@@ -212,7 +220,7 @@ class iTuple(tuple, typing.Generic[T]):
         return iTuple(range(*args, **kwargs))
 
     @classmethod
-    def from_keys(cls, d):
+    def from_keys(cls, d: dict):
         """
         >>> iTuple.from_keys({i: i + 1 for i in range(2)})
         iTuple(0, 1)
@@ -220,7 +228,7 @@ class iTuple(tuple, typing.Generic[T]):
         return cls(d.keys())
         
     @classmethod
-    def from_values(cls, d):
+    def from_values(cls, d: dict):
         """
         >>> iTuple.from_values({i: i + 1 for i in range(2)})
         iTuple(1, 2)
@@ -228,7 +236,7 @@ class iTuple(tuple, typing.Generic[T]):
         return cls(d.values())
         
     @classmethod
-    def from_items(cls, d):
+    def from_items(cls, d: dict):
         """
         >>> iTuple.from_items({i: i + 1 for i in range(2)})
         iTuple((0, 1), (1, 2))
@@ -2008,6 +2016,7 @@ class iTuple(tuple, typing.Generic[T]):
         ...     .fold(acc_primes, initial=primes)
         ...     .map(lambda v: v ** 2)
         ... )
+        >>> primes
         iTuple(4, 9, 25, 49)
         """
         func: typing.Callable[[V, T], V]

@@ -136,7 +136,7 @@ class _Example(typing.NamedTuple):
     >>> ex = _Example(1, "a")
     >>> ex
     _Example(x=1, s='a', it=iTuple())
-    >>> ex.meta
+    >>> ex.meta()
     <class 'xtuples.n.nTuple'>
     >>> ex.pipe(lambda nt: nt.x)
     1
