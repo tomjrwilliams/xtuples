@@ -25,15 +25,15 @@ class nTuple(abc.ABC):
     @staticmethod
     def pipe(obj, f, *args, at = None, **kwargs):
         """
-        >>> _Example = _Example(1, "a")
-        >>> _Example.pipe(lambda a, b: a, None)
+        >>> _ex = _Example(1, "a")
+        >>> _ex.pipe(lambda a, b: a, None)
         _Example(x=1, s='a', it=iTuple())
-        >>> _Example.pipe(lambda a, b: a, None, at = 1)
-        >>> _Example.pipe(lambda a, b: a, None, at = 'b')
-        >>> _Example.pipe(lambda a, b: a, a=None, at = 'b')
-        >>> _Example.pipe(lambda a, b: a, b=None, at = 'a')
+        >>> _ex.pipe(lambda a, b: a, None, at = 1)
+        >>> _ex.pipe(lambda a, b: a, None, at = 'b')
+        >>> _ex.pipe(lambda a, b: a, a=None, at = 'b')
+        >>> _ex.pipe(lambda a, b: a, b=None, at = 'a')
         _Example(x=1, s='a', it=iTuple())
-        >>> _Example.pipe(lambda a, b: a, None, at = 0)
+        >>> _ex.pipe(lambda a, b: a, None, at = 0)
         _Example(x=1, s='a', it=iTuple())
         """
         return pipe(f, obj, *args, at = at, **kwargs)
@@ -84,7 +84,7 @@ class nTuple(abc.ABC):
     def annotations(obj):
         """
         >>> ex = _Example(1, "a")
-        >>> ex.pipe(ex.meta.annotations)
+        >>> ex.pipe(ex.meta().annotations)
         {'x': ForwardRef('int'), 's': ForwardRef('str'), 'it': ForwardRef('iTuple')}
         """
         return obj.__annotations__
@@ -93,7 +93,7 @@ class nTuple(abc.ABC):
     def as_dict(cls, obj):
         """
         >>> ex = _Example(1, "a")
-        >>> ex.pipe(ex.meta.as_dict)
+        >>> ex.pipe(ex.meta().as_dict)
         {'x': 1, 's': 'a', 'it': iTuple()}
         """
         return obj._asdict()
@@ -103,8 +103,8 @@ class nTuple(abc.ABC):
         def decorator(cls):
             cls.pipe = meta.pipe
             cls.partial = meta.partial
-            cls.meta = meta
-            cls.cls = cls
+            cls.meta = lambda_meta(meta)
+            cls.cls = lambda_cls(cls)
             for k, f in methods.items():
                 setattr(cls, k, f)
             return cls
@@ -114,6 +114,19 @@ class nTuple(abc.ABC):
     def enum(meta, cls):
         cls = meta.decorate()(cls)
         return functools.lru_cache(maxsize=1)(cls)
+
+def lambda_meta(meta):
+    def f(self: typing.NamedTuple) -> type[nTuple]:
+        return meta
+    return f
+
+def lambda_cls(cls):
+    def f(self: NT) -> type[NT]:
+        return cls
+    return f
+
+NT = typing.TypeVar("NT", bound=typing.NamedTuple)
+nT = typing.TypeVar("nT", bound=nTuple)
 
 # ---------------------------------------------------------------
 
@@ -139,44 +152,48 @@ class _Example(typing.NamedTuple):
     s: str
     it: iTuple = iTuple.empty()
 
-    @property
-    def cls(self):
-        ...
-
-    def pipe(self, f, *args, at = None, **kwargs):
-        ...
-
-    def partial(self, f, *args, at = None, **kwargs):
-        ...
-
-
-if typing.TYPE_CHECKING:
     
-    # NOTE: from the README
+    def cls( # type: ignore[empty-body]
+        self: _Example
+    ) -> type[typing.NamedTuple]: ...
 
-    class Has_X(typing.Protocol):
-        x: int
+    def meta( # type: ignore[empty-body]
+        self: _Example
+    ) -> type[nTuple]: ...
 
-    def f(self: Has_X) -> int:
-        return self.x + 1
+    def pipe(self, f, *args, at = None, **kwargs): ...
 
-    @nTuple.decorate(f = f)
-    class Example_A(typing.NamedTuple):
+    def partial(self, f, *args, at = None, **kwargs): ...
 
-        x: int
+# ---------------------------------------------------------------
 
-        def f(self: Example_A) -> int: ...
+# if TYPE_CHECKING:
+    
+# NOTE: from the README
 
-    @nTuple.decorate(f = f)
-    class Example_B(typing.NamedTuple):
+class Has_X(typing.Protocol):
+    x: int
 
-        x: int
-        y: float
+def f(self: Has_X) -> int:
+    return self.x + 1
 
-        def f(self: Example_B) -> int: ...
+@nTuple.decorate(f = f)
+class Example_A(typing.NamedTuple):
 
-    nt: Example_A = Example_A(1)
-    i: int = nt.f()
+    x: int
+
+    def f(self: Example_A) -> int: ... # type: ignore[empty-body]
+
+@nTuple.decorate(f = f)
+class Example_B(typing.NamedTuple):
+
+    x: int
+    y: float
+
+    def f(self: Example_B) -> int: ... # type: ignore[empty-body]
+
+nt: Example_A = Example_A(1)
+i: int = nt.f()
 
 # ---------------------------------------------------------------
 

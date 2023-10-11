@@ -9,22 +9,21 @@ from . import utils
 # ---------------------------------------------------------------
 
 def unpack_doctests(module = xt):
-    return doctest.DocTestFinder().find(module)
+    return xt.iTuple(doctest.DocTestFinder().find(module))
 
-def unpack_docstrings(module):
-    doctests = xt.iTuple(unpack_doctests(module))
-    return doctests.map(
+def unpack_docstrings(module) -> xt.iTuple[str]:
+    return unpack_doctests(module).map(
         lambda dt: dt.__dict__["docstring"]
     )
 
-def parse_docstring(s: str):
-    return "\n\t" + "\n\t".join(
-        xt.iTuple(s.split("\n"))
-        .map(lambda s: s.strip())
+def parse_docstring(s: str) -> str:
+    lines: xt.iTuple[str] = xt.iTuple(s.split("\n"))
+    return "\t" + "\n\t".join(
+        lines.map(lambda ss: ss.strip())
         .filter(
-            lambda s: s.startswith(">>>") or s.startswith("...")
+            lambda ss: ss.startswith(">>>") or ss.startswith("...")
         )
-        .map(lambda s: s[4:])
+        .map(lambda ss: ss[4:])
     )
 
 def gen_example(i: int, s: str):
@@ -39,6 +38,7 @@ def gen_examples(mod):
     return (
         unpack_docstrings(mod)
         .map(parse_docstring)
+        .filter(lambda s: len(s.strip()) > 0)
         .enumerate()
         .mapstar(gen_example)
     )

@@ -961,6 +961,11 @@ class iTuple(tuple, typing.Generic[T]):
         *iters: typing.Iterator,
         star: typing.Literal[False] = False,
     ) -> iTuple: ...
+    
+    # fall through for self.zip()
+
+    @typing.overload
+    def zip(self: iTuple) -> tuple[typing.Iterable, ...]: ...
 
     # implementation
 
@@ -970,9 +975,13 @@ class iTuple(tuple, typing.Generic[T]):
         star=False,
     ):
         """
-        >>> iTuple([[1, 1], [2, 2], [3, 3]]).zip()
+        >>> it: iTuple[tuple[int, int]]
+        >>> it = iTuple([(1, 1), (2, 2), (3, 3)])
+        >>> it.zip()
         iTuple((1, 2, 3), (1, 2, 3))
-        >>> iTuple([iTuple.range(3), iTuple.range(1, 4)]).zip()
+        >>> it_r: iTuple[tuple[int, ...]]
+        >>> it_r = iTuple((iTuple.range(3), iTuple.range(1, 4)))
+        >>> it_r.zip()
         iTuple((0, 1), (1, 2), (2, 3))
         >>> v0 = iTuple.range(3).zip(iTuple.range(1, 4))
         >>> v0
@@ -982,9 +991,14 @@ class iTuple(tuple, typing.Generic[T]):
         >>> v0.zip(v0, star=True)
         iTuple((0, 1, (0, 1)), (1, 2, (1, 2)), (2, 3, (2, 3)))
         """
+        # NOTE: self.zip() or zip(..., star=True) requires self to be an iterable of tuples so we can unpack types (or mypy will compain)
         if star:
+            if len(self):
+                assert isinstance(self[0], tuple)
             res = zip(*zip(*self), *itrs)
         elif len(itrs) == 0:
+            if len(self):
+                assert isinstance(self[0], tuple)
             res = zip(*self)
         else:
             res = zip(self, *itrs)
@@ -1695,30 +1709,30 @@ class iTuple(tuple, typing.Generic[T]):
     def clear(self):
         return type(self)()
 
-    def take(self, n):
+    def take(self: iTuple[T], n) -> iTuple[T]:
         """
         >>> iTuple.range(3).take(2)
         iTuple(0, 1)
         """
         return self[:n]
 
-    def tail(self, n):
+    def tail(self: iTuple[T], n) -> iTuple[T]:
         """
         >>> iTuple.range(3).tail(2)
         iTuple(1, 2)
         """
         return self[-n:]
 
-    def reverse(self, lazy: bool = False):
+    def reverse(self: iTuple[T], lazy: bool = False) -> iTuple[T]:
         """
         >>> iTuple.range(3).reverse()
         iTuple(2, 1, 0)
         """
-        if lazy:
-            return reversed(self)
+        # if lazy:
+        #     return reversed(self)
         return type(self)(reversed(self))
 
-    def take_while(self, f, n = None, lazy: bool = False):
+    def take_while(self: iTuple[T], f, n = None, lazy: bool = False) -> iTuple[T]:
         """
         >>> iTuple.range(3).take_while(lambda v: v < 1)
         iTuple(0)
@@ -1734,7 +1748,7 @@ class iTuple(tuple, typing.Generic[T]):
         res = iter()
         return res if lazy else type(self)(res)
 
-    def tail_while(self, f, n = None):
+    def tail_while(self: iTuple[T], f, n = None) -> iTuple[T]:
         """
         >>> iTuple.range(3).tail_while(lambda v: v > 1)
         iTuple(2)
@@ -1749,7 +1763,7 @@ class iTuple(tuple, typing.Generic[T]):
 
     # NOTE: from as in, starting from first true
     # versus above, which is until first false
-    def take_after(self, f, n = None, lazy: bool = False):
+    def take_after(self: iTuple[T], f, n = None, lazy: bool = False) -> iTuple[T]:
         """
         >>> iTuple.range(3).take_after(lambda v: v < 1)
         iTuple(1, 2)
@@ -1769,7 +1783,7 @@ class iTuple(tuple, typing.Generic[T]):
         res = iter()
         return res if lazy else type(self)(res)
 
-    def tail_after(self, f, n = None):
+    def tail_after(self: iTuple[T], f, n = None) -> iTuple[T]:
         """
         >>> iTuple.range(3).tail_after(lambda v: v < 2)
         iTuple(0, 1)
@@ -1787,14 +1801,14 @@ class iTuple(tuple, typing.Generic[T]):
                 break
         return self.tail(l + r).take(r)
 
-    def islice(self, left = None, right = None):
+    def islice(self: iTuple[T], left = None, right = None) -> iTuple[T]:
         """
         >>> iTuple.range(5).islice(1, 3)
         iTuple(1, 2)
         """
         return self[left:right]
 
-    def unique(self):
+    def unique(self: iTuple[T]) -> iTuple[T]:
         """
         >>> iTuple([1, 1, 3, 2, 4, 2, 3]).unique()
         iTuple(1, 3, 2, 4)
@@ -1808,7 +1822,7 @@ class iTuple(tuple, typing.Generic[T]):
                 yield v
         return type(self)(iter())
 
-    def argsort(self, f = lambda v: v, star: bool = False, reverse = False):
+    def argsort(self: iTuple[T], f = lambda v: v, star: bool = False, reverse = False) -> iTuple[int]:
         if star:
             f_sort = lambda i, v: f(*v)
         else:
@@ -1817,8 +1831,18 @@ class iTuple(tuple, typing.Generic[T]):
             f=f_sort, reverse=reverse,
         ).mapstar(lambda i, v: i)
 
-    def sort(self: iTuple[CT], reverse=False) -> iTuple[CT]:
-        return type(self)(sorted(self, reverse=reverse))
+    def sort(self: iTuple[T], reverse=False) -> iTuple[T]:
+        """
+        >>> iTuple.range(3).reverse().sort()
+        iTuple(0, 1, 2)
+        >>> iTuple.range(3).sort()
+        iTuple(0, 1, 2)
+        """
+        return type(self)(sorted(
+            typing.cast(iTuple[CT], self), 
+            reverse=reverse,
+            #
+        ))
     
     def sortby(
         self: iTuple[T], 
@@ -1829,12 +1853,6 @@ class iTuple(tuple, typing.Generic[T]):
         reverse = False,
         star: bool = False,
     ):
-        """
-        >>> iTuple.range(3).reverse().sort()
-        iTuple(0, 1, 2)
-        >>> iTuple.range(3).sort()
-        iTuple(0, 1, 2)
-        """
         if star:
             return self.sortstar(f=f, reverse=reverse)
         return type(self)(
@@ -1847,12 +1865,6 @@ class iTuple(tuple, typing.Generic[T]):
         f: typing.Callable[..., CT],
         reverse = False
     ):
-        """
-        >>> iTuple.range(3).reverse().sort()
-        iTuple(0, 1, 2)
-        >>> iTuple.range(3).sort()
-        iTuple(0, 1, 2)
-        """
         return type(self)(
             sorted(self, key = lambda v: f(*v), reverse=reverse)
             #
@@ -1984,14 +1996,16 @@ class iTuple(tuple, typing.Generic[T]):
         2
         >>> iTuple.range(3).fold(operator.add)
         3
-        >>> (
+        >>> primes: iTuple[int] = iTuple()
+        >>> acc_primes: typing.Callable[[iTuple[int], int], iTuple[int]] = lambda primes, v: (
+        ...     primes.append(v)
+        ...     if not primes.any(lambda prime: v % prime == 0)
+        ...     else primes
+        ... )
+        >>> primes = (
         ...     iTuple.range(10)
         ...     .filter(lambda v: v > 1)
-        ...     .fold(lambda primes, v: (
-        ...         primes.append(v)
-        ...         if not primes.any(lambda prime: v % prime == 0)
-        ...         else primes
-        ...     ), initial=iTuple())
+        ...     .fold(acc_primes, initial=primes)
         ...     .map(lambda v: v ** 2)
         ... )
         iTuple(4, 9, 25, 49)
@@ -2054,34 +2068,41 @@ def pipe(f, obj, *args, at = None, discard=False, **kwargs):
 
 # ---------------------------------------------------------------
 
-if TYPE_CHECKING:
-    it: iTuple[int] = iTuple.range(3)
+# if TYPE_CHECKING:
 
-    f: typing.Callable[[int], int] = lambda v: v * 2
-    it = it.map(f)
+it: iTuple[int] = iTuple.range(3)
 
-    filt = lambda v: v < 3
-    it = it.filter(filt)
+f: typing.Callable[[int], int] = lambda v: v * 2
+it = it.map(f)
 
-    z = iTuple.range(3).zip(range(3))
-    # z.map(f) # should fail
+it.sort()
 
-    it_n: iTuple[tuple[int, int, int]] = (
-        iTuple.range(3)
-        .zip(range(3))
-        .zip(range(3), star=True)
-    )
-    it_n_: iTuple[tuple[tuple[int, int], int]] = (
-        iTuple.range(3)
-        .zip(range(3))
-        .zip(range(3))
-    )
-    
-    # i_rng_0: typing.Iterable[str] # should error
-    i_rng_0: typing.Iterable[int]
-    i_rng_1: typing.Iterable[int]
+filt = lambda v: v < 3
+it = it.filter(filt)
 
-    i_rngs = iTuple.range(3).zip(range(3)).zip()
-    i_rng_0, i_rng_1 = i_rngs
+z = iTuple.range(3).zip(range(3))
+# z.map(f) # should fail
+
+it_n: iTuple[tuple[int, int, int]] = (
+    iTuple.range(3)
+    .zip(range(3))
+    .zip(range(3), star=True)
+)
+it_n_: iTuple[tuple[tuple[int, int], int]] = (
+    iTuple.range(3)
+    .zip(range(3))
+    .zip(range(3))
+)
+
+# i_rng_0: typing.Iterable[str] # should error
+i_rng_0: typing.Iterable[int]
+i_rng_1: typing.Iterable[int]
+
+i_rngs = iTuple.range(3).zip(range(3)).zip()
+i_rng_0, i_rng_1 = i_rngs
+
+it_r: iTuple[tuple[int, ...]] = iTuple((iTuple.range(3), iTuple.range(1, 4)))
+it_r 
+it_r.zip()
 
 # ---------------------------------------------------------------
