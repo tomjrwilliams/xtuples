@@ -75,7 +75,7 @@ class A(typing.NamedTuple):
     x: int
     y: float
 
-    def f(self) -> int: ...
+    def f(self: A) -> int: ... # type: ignore[empty-body]
 
 @xt.nTuple.decorate(f = f)
 class B(typing.NamedTuple):
@@ -83,8 +83,10 @@ class B(typing.NamedTuple):
     x: int
     y: float
 
-    def f(self) -> int: ...
+    def f(self: B) -> int: ... # type: ignore[empty-body]
 ```
+
+Annoyingly, we have to set mypy to ignore the empty body, but we still get type checking on the implementation (at f).
 
 ### JAX
 

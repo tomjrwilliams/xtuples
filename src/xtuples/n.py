@@ -151,7 +151,6 @@ class _Example(typing.NamedTuple):
     x: int
     s: str
     it: iTuple = iTuple.empty()
-
     
     def cls( # type: ignore[empty-body]
         self: _Example
@@ -166,8 +165,6 @@ class _Example(typing.NamedTuple):
     def partial(self, f, *args, at = None, **kwargs): ...
 
 # ---------------------------------------------------------------
-
-# if TYPE_CHECKING:
     
 # NOTE: from the README
 
