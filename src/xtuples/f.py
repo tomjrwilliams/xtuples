@@ -94,9 +94,6 @@ def from_where(
 # -----
 
 def partial(f, *args, **kwargs):
-    """
-    
-    """
     def res(self, **kws):
         return self.partial(f, *args, **kwargs, **kws)
     return res

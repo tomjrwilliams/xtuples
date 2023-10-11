@@ -1873,6 +1873,11 @@ class iTuple(tuple, typing.Generic[T]):
             lambda i, v: f(*v), reverse=reverse
         )
 
+    # TODO: add f_finally
+    # so we can eg. have cumulative data structures within like set
+    # and then pipe back into ituple
+    # so or just pipe kwarg
+
     @typing.overload
     def foldcum(
         self: iTuple[T], 

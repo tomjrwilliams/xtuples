@@ -5,6 +5,8 @@ import datetime
 
 from pympler.asizeof import asizeof  # type: ignore
 
+import xtuples as xt
+
 # ---------------------------------------------------------------
 
 def lineno(n_back = 0):
@@ -146,5 +148,97 @@ def compare(
         print(k, v)
 
     assert passed, result
+
+# ---------------------------------------------------------------
+
+import os
+
+import tempfile
+import subprocess
+
+import pathlib
+XTUPLES = str(pathlib.Path("./src").resolve()).replace("\\", "/")
+
+def run_py(s: str):
+    try:
+        f = tempfile.NamedTemporaryFile(delete=False)
+        f.write(bytes(s, "utf-8"))
+        f.close()
+        res = subprocess.run(
+            [
+                "python",
+                "-m",
+                "mypy",
+                f.name,
+                "--check-untyped-defs",
+                "--soft-error-limit=-1",
+            ],
+            stdout = subprocess.PIPE,
+            stderr = subprocess.STDOUT,
+            text = True,
+            env=dict(os.environ, MYPYPATH=XTUPLES)
+        ).stdout
+    finally:
+        os.remove(f.name)
+    return res
+
+# ---------------------------------------------------------------
+
+SUCCESS = "Success: "
+FAILURE = "error: "
+
+def annotate(s: str, offset = 0):
+    return "\n".join(
+        xt.iTuple(s.split("\n"))
+        .enumerate()
+        .mapstar(lambda i, s: (
+            s if not len(s.strip())
+            else s + " # line {}".format(i + offset)
+        ))
+    )
+
+def gen_boilerplate(extra: str = ''):
+    return """
+
+import os
+import sys
+sys.path.append("{}")
+
+import typing
+
+from xtuples import iTuple, nTuple, iLazy
+
+import xtuples as xt
+
+{}
+
+""".format(XTUPLES, extra)
+
+
+def run_mypy(s: str, asserting = None, extra: str = ''):
+    
+    boiler = gen_boilerplate(extra=extra)
+    res = run_py(boiler + s)
+
+    s = annotate(s, offset = len(boiler.split("\n")))
+
+    try:
+        if asserting is None:
+            assert SUCCESS in res
+
+        elif isinstance(asserting, str):
+            assert asserting in res
+
+        else:
+            assert asserting(res)
+
+    except Exception as e:
+
+        print(s)
+        print(res)
+
+        raise e
+
+    return True
 
 # ---------------------------------------------------------------
