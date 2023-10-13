@@ -43,9 +43,10 @@ Z4 = typing.TypeVar('Z4')
 Z5 = typing.TypeVar('Z5')
 
 # ---------------------------------------------------------------
+
 class zTuple_1(
     tuple[Z],
-    # typing.Generic[Z],
+    # typing.Generic[Z, Z0],
 ):
 
     def __repr__(self: zTuple_1[Z]) -> str:
@@ -58,13 +59,11 @@ class zTuple_1(
     def map(
         self: zTuple_1[Z],
         f: typing.Callable[
-            [Z], 
-            zTuple_1[U]
+            [Z], U
         ],
-    ):
-        return zTuple_1((
-            f(v) for v in self
-        ))
+    ) -> iTuple[U]:
+        v0, = self
+        return iTuple((f(v0), ))
 
 class zTuple_2(
     tuple[Z, Z0],
@@ -84,7 +83,8 @@ class zTuple_2(
             [typing.Union[Z, Z0]], U
         ],
     ) -> iTuple[U]:
-        return iTuple(map(f, self))
+        v0, v1 = self
+        return iTuple((f(v0), f(v1),))
 
 class zTuple_3(
     tuple[Z, Z0, Z1],
@@ -104,7 +104,10 @@ class zTuple_3(
             [typing.Union[Z, Z0, Z1]], U
         ],
     ) -> iTuple[U]:
-        return iTuple(map(f, self))
+        v0, v1, v2 = self
+        return iTuple((
+            f(v0), f(v1), f(v2),
+        ))
 
 class zTuple_4(
     tuple[Z, Z0, Z1, Z2],
@@ -124,7 +127,10 @@ class zTuple_4(
             [typing.Union[Z, Z0, Z1, Z2]], U
         ],
     ) -> iTuple[U]:
-        return iTuple(map(f, self))
+        v0, v1, v2, v3 = self
+        return iTuple((
+            f(v0), f(v1), f(v2), f(v3), 
+        ))
     
 class zTuple_5(
     tuple[Z, Z0, Z1, Z2, Z3],
@@ -144,7 +150,10 @@ class zTuple_5(
             [typing.Union[Z, Z0, Z1, Z2, Z3]], U
         ],
     ) -> iTuple[U]:
-        return iTuple(map(f, self))
+        v0, v1, v2, v3, v4 = self
+        return iTuple((
+            f(v0), f(v1), f(v2), f(v3), f(v4),
+        ))
     
 class zTuple_6(
     tuple[Z, Z0, Z1, Z2, Z3, Z4],
@@ -164,7 +173,10 @@ class zTuple_6(
             [typing.Union[Z, Z0, Z1, Z2, Z3, Z4]], U
         ],
     ) -> iTuple[U]:
-        return iTuple(map(f, self))
+        v0, v1, v2, v3, v4, v5 = self
+        return iTuple((
+            f(v0), f(v1), f(v2), f(v3), f(v4), f(v5),
+        ))
     
 class zTuple_7(
     tuple[Z, Z0, Z1, Z2, Z3, Z4, Z5],
@@ -186,7 +198,10 @@ class zTuple_7(
             [typing.Union[Z, Z0, Z1, Z2, Z3, Z4, Z5]], U
         ],
     ) -> iTuple[U]:
-        return iTuple(map(f, self))
+        v0, v1, v2, v3, v4, v5, v6 = self
+        return iTuple((
+            f(v0), f(v1), f(v2), f(v3), f(v4), f(v5), f(v6),
+        ))
 
 # ---------------------------------------------------------------
 
