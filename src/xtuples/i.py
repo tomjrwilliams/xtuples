@@ -55,6 +55,11 @@ class zTuple_1(
             s[1:-2 if s[-2] == "," else -1],
         )
 
+    def __iter__(
+        self: zTuple_1[Z]
+    ) -> typing.Iterator[Z]:
+        yield from self
+
     def map(
         self: zTuple_1[Z],
         f: typing.Callable[
@@ -78,15 +83,16 @@ class zTuple_2(
             s[1:-2 if s[-2] == "," else -1],
         )
 
+    def __iter__(self) -> typing.Iterator[typing.Union[Z, Z0]]:
+        yield from self
+
     def map(
         self: zTuple_2[Z, Z0],
         f: typing.Callable[
             [typing.Union[Z, Z0]], U
         ],
     ) -> iTuple[U]:
-        return iTuple((
-            f(v) for v in self
-        ))
+        return iTuple(map(f, self))
 
 class zTuple_3(
     tuple[Z, Z0, Z1],
@@ -99,6 +105,11 @@ class zTuple_3(
             type(self).__name__,
             s[1:-2 if s[-2] == "," else -1],
         )
+
+    def __iter__(self) -> typing.Iterator[
+        typing.Union[Z, Z0, Z1]
+    ]:
+        yield from self
 
     def map(
         self: zTuple_3[Z, Z0, Z1],
@@ -122,6 +133,11 @@ class zTuple_4(
             s[1:-2 if s[-2] == "," else -1],
         )
 
+    def __iter__(self) -> typing.Iterator[
+        typing.Union[Z, Z0, Z1, Z2]
+    ]:
+        yield from self
+
     def map(
         self: zTuple_4[Z, Z0, Z1, Z2],
         f: typing.Callable[
@@ -144,6 +160,11 @@ class zTuple_5(
             s[1:-2 if s[-2] == "," else -1],
         )
 
+    def __iter__(self) -> typing.Iterator[
+        typing.Union[Z, Z0, Z1, Z2, Z3]
+    ]:
+        yield from self
+
     def map(
         self: zTuple_5[Z, Z0, Z1, Z2, Z3],
         f: typing.Callable[
@@ -165,6 +186,11 @@ class zTuple_6(
             type(self).__name__,
             s[1:-2 if s[-2] == "," else -1],
         )
+
+    def __iter__(self) -> typing.Iterator[
+        typing.Union[Z, Z0, Z1, Z2, Z3, Z4]
+    ]:
+        yield from self
 
     def map(
         self: zTuple_6[Z, Z0, Z1, Z2, Z3, Z4],
@@ -189,6 +215,11 @@ class zTuple_7(
             type(self).__name__,
             s[1:-2 if s[-2] == "," else -1],
         )
+
+    def __iter__(self) -> typing.Iterator[
+        typing.Union[Z, Z0, Z1, Z2, Z3, Z4, Z5]
+    ]:
+        yield from self
 
     def map(
         self: zTuple_7[Z, Z0, Z1, Z2, Z3, Z4, Z5],
@@ -2654,8 +2685,8 @@ it_n_: iTuple[tuple[tuple[int, int], int]] = (
     .zip(range(3))
 )
 
-i_rng_0: typing.Iterable[str] # should error
-# i_rng_0: typing.Iterable[int]
+# i_rng_0: typing.Iterable[str] # should error
+i_rng_0: typing.Iterable[int]
 i_rng_1: typing.Iterable[int]
 
 i_rng_0, i_rng_1 = iTuple.range(3).zip(range(3)).zip()
