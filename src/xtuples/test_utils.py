@@ -36,47 +36,49 @@ def log_time(start, times):
 def time_funcs(*fs, iters = 10e4, max_time = 10e6):
     
     n = len(fs)
-    f_times_mems = itertools.cycle(zip(
-        range(n), fs, [[] for _ in fs], [[] for _ in fs]
-    )) # type: ignore
+
+    times: list[list[float]] = [[] for _ in fs]
+    mems: list[list[float]] = [[] for _ in fs]
+
+    # f_times_mems = itertools.cycle(zip(
+    #     range(n), fs, times, mems, 
+    # )) # type: ignore
 
     runs = int(iters / 100)
     start = datetime.datetime.now()
 
     total = 0
-
     incr = 0
 
     for _ in range(100):
-        for _ in range(n):
+        for i in range(n):
 
-            i, f, times, mems = next(f_times_mems)
+            f = fs[i]
+            ts = times[i]
+            ms = mems[i]
 
-            res = [f() for _ in range(runs)]
-            r = res[0]
+            start = datetime.datetime.now()
 
-            start, t = log_time(start, times)
-            mems.append(asizeof(r))
+            for _ in range(runs):
+                res = f()
+
+            start, t = log_time(start, ts)
+            ms.append(asizeof(res))
             
             total += t
 
         if total > max_time:
-                break
+            break
         
         # discard one instance
         # so each time we start with a different func
-        i, _, _, _ = next(f_times_mems)
+        # i, _, _, _ = next(f_times_mems)
         incr += 1
-    
-    while i < n - 1:
-        i, _, _, _ = next(f_times_mems)
 
-    return (incr,) + tuple(
-        (sum(times) / len(times)) / 1000
-        for _, (_, _, times, _) in zip(range(n), f_times_mems)
+    return (incr,) + tuple([f() for f in fs]) + tuple(
+        (sum(ts) / len(ts)) / 1000 for ts in times
     ) + tuple(
-        (sum(mems) / len(mems)) / 1000
-        for _, (_, _, _, mems) in zip(range(n), f_times_mems)
+        (sum(ms) / len(ms)) / 1000 for ms in mems
     )
 
     # in milliseconds
@@ -84,16 +86,26 @@ def time_funcs(*fs, iters = 10e4, max_time = 10e6):
 # ---------------------------------------------------------------
 
 def within_multiple(m, fastest=1):
+    assert fastest in (0, 1,)
     def f_compare(v1, v2, m1, m2):
-        v1, v2 = ((v1, v2,) if fastest == 1 else (v2, v1,))
+        v1, v2 = (
+            (v1, v2,) 
+            if fastest == 1 
+            else (v2, v1,)
+        )
         if v2 < v1:
             return True
         return (v1 * m) >= v2
     return f_compare
 
-def within_percent(pct, fastest=1):
+def excess_within_percent(pct, fastest=1):
+    assert fastest in (0, 1,)
     def f_compare(v1, v2, m1, m2):
-        v1, v2 = ((v1, v2,) if fastest == 1 else (v2, v1,))
+        v1, v2 = (
+            (v1, v2,) 
+            if fastest == 1 
+            else (v2, v1,)
+        )
         if v2 < v1:
             return True
         return (v2 - v1) < (v1 * (pct / 100))
@@ -104,14 +116,23 @@ def compare(
     f2,
     fastest = 1,
     f_compare = None,
+    f_eq = None,
     **kwargs,
 ):
 
     print("--")
 
-    loops, millis_1, millis_2, mem_1, mem_2 = time_funcs(f1, f2, **kwargs)
+    (
+        loops,
+        res_1,
+        res_2,
+        millis_1,
+        millis_2,
+        mem_1,
+        mem_2
+    ) = time_funcs(f1, f2, **kwargs)
 
-    passed = (
+    passed = ((
         round(millis_2, 1) <= round(millis_1, 1)
         if fastest == 1
         else round(millis_1, 1) <= round(millis_2, 1)
@@ -122,6 +143,8 @@ def compare(
         millis_2,
         mem_1,
         mem_2,
+    )) and (
+        True if f_eq is None else f_eq(res_1, res_2)
     )
 
     result = {
@@ -142,6 +165,10 @@ def compare(
                 f1.__name__: round(millis_1, 2),
                 f2.__name__: round(millis_2, 2),
             },
+            "result": res_1 if f_eq(res_1, res_2) else {
+                f1.__name__: res_1,
+                f2.__name__: res_2,
+            },
         },
     }
     for k, v in result.items():
@@ -157,12 +184,15 @@ import tempfile
 import subprocess
 
 import pathlib
-XTUPLES = str(pathlib.Path("./src").resolve()).replace("\\", "/")
+
+assert "xtuples" in os.environ
+
+XTUPLES = str(pathlib.Path(os.environ["xtuples"]))
 
 def run_py(s: str):
     try:
         f = tempfile.NamedTemporaryFile(delete=False)
-        f.write(bytes(s, "utf-8"))
+        f.write(bytes(s.replace("\\", "\\\\"), "utf-8"))
         f.close()
         res = subprocess.run(
             [

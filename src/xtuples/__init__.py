@@ -5,3 +5,5 @@
 from .i import iTuple, iLazy, pipe
 from .n import nTuple
 from . import f
+
+from . import test_utils

@@ -34,6 +34,172 @@ W3 = typing.TypeVar('W3')
 W4 = typing.TypeVar('W4')
 W5 = typing.TypeVar('W5')
 
+Z = typing.TypeVar('Z')
+Z0 = typing.TypeVar('Z0')
+Z1 = typing.TypeVar('Z1')
+Z2 = typing.TypeVar('Z2')
+Z3 = typing.TypeVar('Z3')
+Z4 = typing.TypeVar('Z4')
+Z5 = typing.TypeVar('Z5')
+
+# ---------------------------------------------------------------
+class zTuple_1(
+    tuple[Z],
+    typing.Generic[Z],
+):
+
+    def __repr__(self: zTuple_1[Z]) -> str:
+        s = tuple.__repr__(self)
+        return "{}({})".format(
+            type(self).__name__,
+            s[1:-2 if s[-2] == "," else -1],
+        )
+
+    def map(
+        self: zTuple_1[Z],
+        f: typing.Callable[
+            [Z], 
+            zTuple_1[U]
+        ],
+    ):
+        return zTuple_1((
+            f(v) for v in self
+        ))
+
+class zTuple_2(
+    tuple[Z, Z0],
+    typing.Generic[Z, Z0],
+):
+
+    def __repr__(self: zTuple_2[Z, Z0]) -> str:
+        s = tuple.__repr__(self)
+        return "{}({})".format(
+            type(self).__name__,
+            s[1:-2 if s[-2] == "," else -1],
+        )
+
+    def map(
+        self: zTuple_2[Z, Z0],
+        f: typing.Callable[
+            [typing.Union[Z, Z0]], U
+        ],
+    ) -> iTuple[U]:
+        return iTuple((
+            f(v) for v in self
+        ))
+
+class zTuple_3(
+    tuple[Z, Z0, Z1],
+    typing.Generic[Z, Z0, Z1],
+):
+
+    def __repr__(self: zTuple_3[Z, Z0, Z1]) -> str:
+        s = tuple.__repr__(self)
+        return "{}({})".format(
+            type(self).__name__,
+            s[1:-2 if s[-2] == "," else -1],
+        )
+
+    def map(
+        self: zTuple_3[Z, Z0, Z1],
+        f: typing.Callable[
+            [typing.Union[Z, Z0, Z1]], U
+        ],
+    ) -> iTuple[U]:
+        return iTuple((
+            f(v) for v in self
+        ))
+
+class zTuple_4(
+    tuple[Z, Z0, Z1, Z2],
+    typing.Generic[Z, Z0, Z1, Z2],
+):
+
+    def __repr__(self: zTuple_4[Z, Z0, Z1, Z2]) -> str:
+        s = tuple.__repr__(self)
+        return "{}({})".format(
+            type(self).__name__,
+            s[1:-2 if s[-2] == "," else -1],
+        )
+
+    def map(
+        self: zTuple_4[Z, Z0, Z1, Z2],
+        f: typing.Callable[
+            [typing.Union[Z, Z0, Z1, Z2]], U
+        ],
+    ) -> iTuple[U]:
+        return iTuple((
+            f(v) for v in self
+        ))
+    
+class zTuple_5(
+    tuple[Z, Z0, Z1, Z2, Z3],
+    typing.Generic[Z, Z0, Z1, Z2, Z3],
+):
+
+    def __repr__(self: zTuple_5[Z, Z0, Z1, Z2, Z3]) -> str:
+        s = tuple.__repr__(self)
+        return "{}({})".format(
+            type(self).__name__,
+            s[1:-2 if s[-2] == "," else -1],
+        )
+
+    def map(
+        self: zTuple_5[Z, Z0, Z1, Z2, Z3],
+        f: typing.Callable[
+            [typing.Union[Z, Z0, Z1, Z2, Z3]], U
+        ],
+    ) -> iTuple[U]:
+        return iTuple((
+            f(v) for v in self
+        ))
+    
+class zTuple_6(
+    tuple[Z, Z0, Z1, Z2, Z3, Z4],
+    typing.Generic[Z, Z0, Z1, Z2, Z3, Z4],
+):
+
+    def __repr__(self: zTuple_6[Z, Z0, Z1, Z2, Z3, Z4]) -> str:
+        s = tuple.__repr__(self)
+        return "{}({})".format(
+            type(self).__name__,
+            s[1:-2 if s[-2] == "," else -1],
+        )
+
+    def map(
+        self: zTuple_6[Z, Z0, Z1, Z2, Z3, Z4],
+        f: typing.Callable[
+            [typing.Union[Z, Z0, Z1, Z2, Z3, Z4]], U
+        ],
+    ) -> iTuple[U]:
+        return iTuple((
+            f(v) for v in self
+        ))
+    
+class zTuple_7(
+    tuple[Z, Z0, Z1, Z2, Z3, Z4, Z5],
+    typing.Generic[Z, Z0, Z1, Z2, Z3, Z4, Z5],
+):
+
+    def __repr__(
+        self: zTuple_7[Z, Z0, Z1, Z2, Z3, Z4, Z5]
+    ) -> str:
+        s = tuple.__repr__(self)
+        return "{}({})".format(
+            type(self).__name__,
+            s[1:-2 if s[-2] == "," else -1],
+        )
+
+    def map(
+        self: zTuple_7[Z, Z0, Z1, Z2, Z3, Z4, Z5],
+        f: typing.Callable[
+            [typing.Union[Z, Z0, Z1, Z2, Z3, Z4, Z5]], U
+        ],
+    ) -> iTuple[U]:
+        return iTuple((
+            f(v) for v in self
+        ))
+
 # ---------------------------------------------------------------
 
 class SupportsIndex(typing.Protocol):
@@ -359,7 +525,7 @@ class iTuple(tuple, typing.Generic[T]):
         self: iTuple[tuple[U]],
         *,
         star: typing.Literal[False] = False,
-    ) -> tuple[
+    ) -> zTuple_1[
         typing.Iterable[U],
     ]: ...
 
@@ -368,7 +534,7 @@ class iTuple(tuple, typing.Generic[T]):
         self: iTuple[tuple[U, U0]],
         *,
         star: typing.Literal[False] = False,
-    ) -> tuple[
+    ) -> zTuple_2[
         typing.Iterable[U],
         typing.Iterable[U0]
     ]: ...
@@ -378,7 +544,7 @@ class iTuple(tuple, typing.Generic[T]):
         self: iTuple[tuple[U, U0, U1]],
         *,
         star: typing.Literal[False] = False,
-    ) -> tuple[
+    ) -> zTuple_3[
         typing.Iterable[U],
         typing.Iterable[U0],
         typing.Iterable[U1],
@@ -389,7 +555,7 @@ class iTuple(tuple, typing.Generic[T]):
         self: iTuple[tuple[U, U0, U1, U2]],
         *,
         star: typing.Literal[False] = False,
-    ) -> tuple[
+    ) -> zTuple_4[
         typing.Iterable[U],
         typing.Iterable[U0],
         typing.Iterable[U1],
@@ -401,7 +567,7 @@ class iTuple(tuple, typing.Generic[T]):
         self: iTuple[tuple[U, U0, U1, U2, U3]],
         *,
         star: typing.Literal[False] = False,
-    ) -> tuple[
+    ) -> zTuple_5[
         typing.Iterable[U],
         typing.Iterable[U0],
         typing.Iterable[U1],
@@ -414,7 +580,7 @@ class iTuple(tuple, typing.Generic[T]):
         self: iTuple[tuple[U, U0, U1, U2, U3, U4]],
         *,
         star: typing.Literal[False] = False,
-    ) -> tuple[
+    ) -> zTuple_6[
         typing.Iterable[U],
         typing.Iterable[U0],
         typing.Iterable[U1],
@@ -428,7 +594,7 @@ class iTuple(tuple, typing.Generic[T]):
         self: iTuple[tuple[U, U0, U1, U2, U3, U4, U5]],
         *,
         star: typing.Literal[False] = False,
-    ) -> tuple[
+    ) -> zTuple_7[
         typing.Iterable[U],
         typing.Iterable[U0],
         typing.Iterable[U1],
@@ -998,11 +1164,11 @@ class iTuple(tuple, typing.Generic[T]):
         >>> it: iTuple[tuple[int, int]]
         >>> it = iTuple([(1, 1), (2, 2), (3, 3)])
         >>> it.zip()
-        iTuple((1, 2, 3), (1, 2, 3))
+        zTuple_3((1, 2, 3), (1, 2, 3))
         >>> it_r: iTuple[tuple[int, ...]]
         >>> it_r = iTuple((iTuple.range(3), iTuple.range(1, 4)))
         >>> it_r.zip()
-        iTuple((0, 1), (1, 2), (2, 3))
+        zTuple_2((0, 1), (1, 2), (2, 3))
         >>> v0 = iTuple.range(3).zip(iTuple.range(1, 4))
         >>> v0
         iTuple((0, 1), (1, 2), (2, 3))
@@ -1015,14 +1181,33 @@ class iTuple(tuple, typing.Generic[T]):
         if star:
             if len(self):
                 assert isinstance(self[0], tuple)
-            res = zip(*zip(*self), *itrs)
-        elif len(itrs) == 0:
-            if len(self):
-                assert isinstance(self[0], tuple)
-            res = zip(*self)
+            return iTuple(zip(*zip(*self), *itrs))
+
+        if len(itrs):
+            return iTuple(zip(self, *itrs))
+        
+        if len(self):
+            assert isinstance(self[0], tuple)
+
+        i = len(self)
+        assert i > 0, i
+
+        if i == 1:
+            return zTuple_1(self)
+        elif i == 2:
+            return zTuple_2(zip(*self))
+        elif i == 3:
+            return zTuple_3(zip(*self))
+        elif i == 4:
+            return zTuple_4(zip(*self))
+        elif i == 5:
+            return zTuple_5(zip(*self))
+        elif i == 6:
+            return zTuple_6(zip(*self))
+        elif i == 7:
+            return zTuple_7(zip(*self))
         else:
-            res = zip(self, *itrs)
-        return iTuple(res)
+            return iTuple(zip(*self))
 
     @typing.overload
     def flatten(self: iTuple[typing.Iterable[T]]) -> iTuple[T]: ...
@@ -1814,6 +1999,20 @@ class iTuple(tuple, typing.Generic[T]):
         return default
 
     @classmethod
+    def from_gen(
+        cls, 
+        gen, 
+        *,
+        n = None, 
+    ):
+        def _gen():
+            for i, v in enumerate(gen):
+                if n == i:
+                    return
+                yield v
+        return cls(_gen())
+
+    @classmethod
     def n_from(cls, gen: typing.Iterable[T], n: int) -> iTuple[T]:
         return cls.range(n).zip(gen).mapstar(
             lambda i, v: v
@@ -1824,11 +2023,11 @@ class iTuple(tuple, typing.Generic[T]):
     def from_while(
         cls,
         gen: typing.Iterable[T],
-        f: typing.Callable[[T], bool], 
+        f: typing.Callable[..., bool], 
         *,
-        n: int,
+        n: typing.Optional[int] = None,
         max_iters: typing.Optional[int] = None,
-        star: typing.Literal[False],
+        star: typing.Literal[True],
         value: bool = True,
     ) -> iTuple[T]: ...
 
@@ -1837,11 +2036,11 @@ class iTuple(tuple, typing.Generic[T]):
     def from_while(
         cls,
         gen: typing.Iterable[T],
-        f: typing.Callable[..., bool], 
+        f: typing.Callable[[T], bool], 
         *,
-        n: int,
+        n: typing.Optional[int] = None,
         max_iters: typing.Optional[int] = None,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
         value: bool = True,
     ) -> iTuple[T]: ...
 
@@ -1849,7 +2048,7 @@ class iTuple(tuple, typing.Generic[T]):
     def from_while(
         cls, 
         gen, 
-        f, 
+        f,
         *,
         n = None, 
         star: bool = False,
@@ -1878,11 +2077,11 @@ class iTuple(tuple, typing.Generic[T]):
     def from_where(
         cls,
         gen: typing.Iterable[T],
-        f: typing.Callable[[T], bool], 
+        f: typing.Callable[..., bool], 
         *,
-        n: int,
+        n: typing.Optional[int] = None,
         max_iters: typing.Optional[int] = None,
-        star: typing.Literal[False],
+        star: typing.Literal[True],
         value: bool = True,
     ) -> iTuple[T]: ...
 
@@ -1891,11 +2090,11 @@ class iTuple(tuple, typing.Generic[T]):
     def from_where(
         cls,
         gen: typing.Iterable[T],
-        f: typing.Callable[..., bool], 
+        f: typing.Callable[[T], bool], 
         *,
-        n: int,
+        n: typing.Optional[int] = None,
         max_iters: typing.Optional[int] = None,
-        star: typing.Literal[True],
+        star: typing.Literal[False] = False,
         value: bool = True,
     ) -> iTuple[T]: ...
 
@@ -1903,7 +2102,7 @@ class iTuple(tuple, typing.Generic[T]):
     def from_where(
         cls, 
         gen, 
-        f, 
+        f,
         *,
         n = None, 
         star: bool = False,
@@ -2455,12 +2654,11 @@ it_n_: iTuple[tuple[tuple[int, int], int]] = (
     .zip(range(3))
 )
 
-# i_rng_0: typing.Iterable[str] # should error
-i_rng_0: typing.Iterable[int]
+i_rng_0: typing.Iterable[str] # should error
+# i_rng_0: typing.Iterable[int]
 i_rng_1: typing.Iterable[int]
 
-i_rngs = iTuple.range(3).zip(range(3)).zip()
-i_rng_0, i_rng_1 = i_rngs
+i_rng_0, i_rng_1 = iTuple.range(3).zip(range(3)).zip()
 
 it_r: iTuple[tuple[int, ...]] = iTuple((iTuple.range(3), iTuple.range(1, 4)))
 it_r 

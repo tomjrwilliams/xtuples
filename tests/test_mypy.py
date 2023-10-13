@@ -1,5 +1,5 @@
 
-from . import utils
+import xtuples.test_utils as test_utils
     
 # ---------------------------------------------------------------
 
@@ -11,21 +11,21 @@ i_rng_0, i_rng_1 = {}
 
 def test_zip():
     z = "iTuple.range(3).zip(range(3)).zip()"
-    utils.run_mypy(f_zip(
+    test_utils.run_mypy(f_zip(
         "typing.Iterable[int]",
         "typing.Iterable[int]",
         z
     ))
-    utils.run_mypy(f_zip(
+    test_utils.run_mypy(f_zip(
         "typing.Iterable[str]",
         "typing.Iterable[int]",
         z
-    ), asserting=utils.FAILURE)
-    utils.run_mypy(f_zip(
+    ), asserting=test_utils.FAILURE)
+    test_utils.run_mypy(f_zip(
         "int",
         "typing.Iterable[int]",
         z
-    ), asserting=utils.FAILURE)
+    ), asserting=test_utils.FAILURE)
 
 # ---------------------------------------------------------------
 
@@ -52,42 +52,42 @@ res: {} = v.map(f, star=True)
 """.format(f_type, f, it, res_type)
 
 def test_map():
-    utils.run_mypy(f_map("iTuple[int]"))
-    utils.run_mypy(f_map("int"), asserting=utils.FAILURE)
-    utils.run_mypy(f_map("iTuple[str]"), asserting=utils.FAILURE)
+    test_utils.run_mypy(f_map("iTuple[int]"))
+    test_utils.run_mypy(f_map("int"), asserting=test_utils.FAILURE)
+    test_utils.run_mypy(f_map("iTuple[str]"), asserting=test_utils.FAILURE)
 
-    utils.run_mypy(f_map_lazy("iLazy[int]"))
-    utils.run_mypy(f_map_lazy("int"), asserting=utils.FAILURE)
-    utils.run_mypy(f_map_lazy("iTuple[int]"), asserting=utils.FAILURE)
+    test_utils.run_mypy(f_map_lazy("iLazy[int]"))
+    test_utils.run_mypy(f_map_lazy("int"), asserting=test_utils.FAILURE)
+    test_utils.run_mypy(f_map_lazy("iTuple[int]"), asserting=test_utils.FAILURE)
 
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_map_n(
             "typing.Callable[[int], int]",
             "lambda v: v * 2",
             "iTuple[int]",
             "iTuple.range(3).zip(range(3))"
         ),
-        asserting=utils.FAILURE
+        asserting=test_utils.FAILURE
     )
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_map_n_star(
             "typing.Callable[[int], int]",
             "lambda v0, v1: v0 * 2",
             "iTuple[int]",
             "iTuple.range(3).zip(range(3))"
         ),
-        asserting=utils.FAILURE
+        asserting=test_utils.FAILURE
     )
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_map_n(
             "typing.Callable[[int, int], int]",
             "lambda v0, v1: v0 * 2",
             "iTuple[int]",
             "iTuple.range(3).zip(range(3))"
         ),
-        asserting=utils.FAILURE
+        asserting=test_utils.FAILURE
     )
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_map_n_star(
             "typing.Callable[..., int]",
             "lambda v0, v1: v0 * 2",
@@ -109,13 +109,13 @@ res: {} = it.filter(filt, lazy = True)
 """.format(res_type)
 
 def test_filter():
-    utils.run_mypy(f_filter("iTuple[int]"))
-    utils.run_mypy(f_filter("int"), asserting=utils.FAILURE)
-    utils.run_mypy(f_filter("iTuple[str]"), asserting=utils.FAILURE)
+    test_utils.run_mypy(f_filter("iTuple[int]"))
+    test_utils.run_mypy(f_filter("int"), asserting=test_utils.FAILURE)
+    test_utils.run_mypy(f_filter("iTuple[str]"), asserting=test_utils.FAILURE)
 
-    utils.run_mypy(f_filter_lazy("iLazy[int]"))
-    utils.run_mypy(f_filter_lazy("int"), asserting=utils.FAILURE)
-    utils.run_mypy(f_filter_lazy("iTuple[int]"), asserting=utils.FAILURE)
+    test_utils.run_mypy(f_filter_lazy("iLazy[int]"))
+    test_utils.run_mypy(f_filter_lazy("int"), asserting=test_utils.FAILURE)
+    test_utils.run_mypy(f_filter_lazy("iTuple[int]"), asserting=test_utils.FAILURE)
 
 f_fold = lambda res_type: """
 it: iTuple[int] = iTuple.range(3)
@@ -148,40 +148,40 @@ i: {} = it.foldcum(acc, initial=0, star = True,lazy= True)
 """.format(res_type)
 
 def test_fold():
-    utils.run_mypy(f_fold("int"))
-    utils.run_mypy(f_fold("iTuple"), asserting=utils.FAILURE)
-    utils.run_mypy(f_fold("str"), asserting=utils.FAILURE)
+    test_utils.run_mypy(f_fold("int"))
+    test_utils.run_mypy(f_fold("iTuple"), asserting=test_utils.FAILURE)
+    test_utils.run_mypy(f_fold("str"), asserting=test_utils.FAILURE)
 
-    utils.run_mypy(f_fold_star("int"))
-    utils.run_mypy(f_fold_star("iTuple"), asserting=utils.FAILURE)
-    utils.run_mypy(f_fold_star("str"), asserting=utils.FAILURE)
+    test_utils.run_mypy(f_fold_star("int"))
+    test_utils.run_mypy(f_fold_star("iTuple"), asserting=test_utils.FAILURE)
+    test_utils.run_mypy(f_fold_star("str"), asserting=test_utils.FAILURE)
 
 def test_fold_cum():
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_fold_cum("iTuple[int]")
     )
-    utils.run_mypy(
-        f_fold_cum("int"), asserting=utils.FAILURE
+    test_utils.run_mypy(
+        f_fold_cum("int"), asserting=test_utils.FAILURE
     )
-    utils.run_mypy(
-        f_fold_cum("iTuple[str]"), asserting=utils.FAILURE
+    test_utils.run_mypy(
+        f_fold_cum("iTuple[str]"), asserting=test_utils.FAILURE
     )
 
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_fold_cum_star("iTuple[int]")
     )
-    utils.run_mypy(
-        f_fold_cum_star("int"), asserting=utils.FAILURE
+    test_utils.run_mypy(
+        f_fold_cum_star("int"), asserting=test_utils.FAILURE
     )
-    utils.run_mypy(
-        f_fold_cum_star("iTuple[str]"), asserting=utils.FAILURE
+    test_utils.run_mypy(
+        f_fold_cum_star("iTuple[str]"), asserting=test_utils.FAILURE
     )
 
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_fold_cum_star_lazy("iLazy[int]")
     )
-    utils.run_mypy(
-        f_fold_cum_star_lazy("iTuple[int]"), asserting=utils.FAILURE
+    test_utils.run_mypy(
+        f_fold_cum_star_lazy("iTuple[int]"), asserting=test_utils.FAILURE
     )
 
 f_append = lambda v_type, v_val, res_type: """
@@ -191,13 +191,13 @@ res: {} = it.append(v)
 """.format(v_type, v_val, res_type)
 
 def test_append():
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_append("int", 1, "iTuple[int]")
     )
-    utils.run_mypy(
-        f_append("str", '"s"', "iTuple[int]"), asserting=utils.FAILURE
+    test_utils.run_mypy(
+        f_append("str", '"s"', "iTuple[int]"), asserting=test_utils.FAILURE
     )
-    utils.run_mypy(
+    test_utils.run_mypy(
         f_append("str", '"s"', "iTuple[typing.Union[int, str]]")
     )
 

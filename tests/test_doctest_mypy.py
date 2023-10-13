@@ -3,8 +3,7 @@ import sys
 import doctest
 
 import xtuples as xt
-
-from . import utils
+import xtuples.test_utils as test_utils
 
 # ---------------------------------------------------------------
 
@@ -53,19 +52,19 @@ from xtuples.n import _Example
 """
 
 def test_i():
-    utils.run_mypy(
+    test_utils.run_mypy(
         "\n\n".join(gen_examples(xt.i)),
         extra = boilerplate
     )
 
 def test_n():
-    utils.run_mypy(
+    test_utils.run_mypy(
         "\n\n".join(gen_examples(xt.n)),
         extra = boilerplate
     )
 
 def test_f():
-    utils.run_mypy(
+    test_utils.run_mypy(
         "\n\n".join(gen_examples(xt.f)),
         extra = boilerplate
     )
