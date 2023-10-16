@@ -45,8 +45,8 @@ Z5 = typing.TypeVar('Z5')
 # ---------------------------------------------------------------
 
 class zTuple_1(
-    tuple[Z],
-    # typing.Generic[Z, Z0],
+    tuple,
+    typing.Generic[Z],
 ):
 
     def __repr__(self: zTuple_1[Z]) -> str:
@@ -66,8 +66,8 @@ class zTuple_1(
         return iTuple((f(v0), ))
 
 class zTuple_2(
-    tuple[Z, Z0],
-    # typing.Generic[Z, Z0],
+    tuple,
+    typing.Generic[Z, Z0],
 ):
 
     def __repr__(self: zTuple_2[Z, Z0]) -> str:
@@ -87,8 +87,8 @@ class zTuple_2(
         return iTuple((f(v0), f(v1),))
 
 class zTuple_3(
-    tuple[Z, Z0, Z1],
-    # typing.Generic[Z, Z0, Z1],
+    tuple,
+    typing.Generic[Z, Z0, Z1],
 ):
 
     def __repr__(self: zTuple_3[Z, Z0, Z1]) -> str:
@@ -110,8 +110,8 @@ class zTuple_3(
         ))
 
 class zTuple_4(
-    tuple[Z, Z0, Z1, Z2],
-    # typing.Generic[Z, Z0, Z1, Z2],
+    tuple,
+    typing.Generic[Z, Z0, Z1, Z2],
 ):
 
     def __repr__(self: zTuple_4[Z, Z0, Z1, Z2]) -> str:
@@ -133,8 +133,8 @@ class zTuple_4(
         ))
     
 class zTuple_5(
-    tuple[Z, Z0, Z1, Z2, Z3],
-    # typing.Generic[Z, Z0, Z1, Z2, Z3],
+    tuple,
+    typing.Generic[Z, Z0, Z1, Z2, Z3],
 ):
 
     def __repr__(self: zTuple_5[Z, Z0, Z1, Z2, Z3]) -> str:
@@ -156,8 +156,8 @@ class zTuple_5(
         ))
     
 class zTuple_6(
-    tuple[Z, Z0, Z1, Z2, Z3, Z4],
-    # typing.Generic[Z, Z0, Z1, Z2, Z3, Z4],
+    tuple,
+    typing.Generic[Z, Z0, Z1, Z2, Z3, Z4],
 ):
 
     def __repr__(self: zTuple_6[Z, Z0, Z1, Z2, Z3, Z4]) -> str:
@@ -179,8 +179,8 @@ class zTuple_6(
         ))
     
 class zTuple_7(
-    tuple[Z, Z0, Z1, Z2, Z3, Z4, Z5],
-    # typing.Generic[Z, Z0, Z1, Z2, Z3, Z4, Z5],
+    tuple,
+    typing.Generic[Z, Z0, Z1, Z2, Z3, Z4, Z5],
 ):
 
     def __repr__(
