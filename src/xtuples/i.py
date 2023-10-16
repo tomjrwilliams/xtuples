@@ -45,7 +45,7 @@ Z5 = typing.TypeVar('Z5')
 # ---------------------------------------------------------------
 
 class zTuple_1(
-    tuple,
+    tuple[Z],
     typing.Generic[Z],
 ):
 
@@ -66,7 +66,7 @@ class zTuple_1(
         return iTuple((f(v0), ))
 
 class zTuple_2(
-    tuple,
+    tuple[Z, Z0],
     typing.Generic[Z, Z0],
 ):
 
@@ -87,7 +87,7 @@ class zTuple_2(
         return iTuple((f(v0), f(v1),))
 
 class zTuple_3(
-    tuple,
+    tuple[Z, Z0, Z1],
     typing.Generic[Z, Z0, Z1],
 ):
 
@@ -110,7 +110,7 @@ class zTuple_3(
         ))
 
 class zTuple_4(
-    tuple,
+    tuple[Z, Z0, Z1, Z2],
     typing.Generic[Z, Z0, Z1, Z2],
 ):
 
@@ -133,7 +133,7 @@ class zTuple_4(
         ))
     
 class zTuple_5(
-    tuple,
+    tuple[Z, Z0, Z1, Z2, Z3],
     typing.Generic[Z, Z0, Z1, Z2, Z3],
 ):
 
@@ -156,7 +156,7 @@ class zTuple_5(
         ))
     
 class zTuple_6(
-    tuple,
+    tuple[Z, Z0, Z1, Z2, Z3, Z4],
     typing.Generic[Z, Z0, Z1, Z2, Z3, Z4],
 ):
 
@@ -179,7 +179,7 @@ class zTuple_6(
         ))
     
 class zTuple_7(
-    tuple,
+    tuple[Z, Z0, Z1, Z2, Z3, Z4, Z5],
     typing.Generic[Z, Z0, Z1, Z2, Z3, Z4, Z5],
 ):
 
@@ -1154,7 +1154,10 @@ class iTuple(tuple, typing.Generic[T]):
     # fall through for self.zip()
 
     @typing.overload
-    def zip(self: iTuple) -> tuple[typing.Iterable, ...]: ...
+    def zip(self: iTuple) -> tuple[
+        typing.Iterable, ...
+        #
+    ]: ...
 
     # implementation
 
